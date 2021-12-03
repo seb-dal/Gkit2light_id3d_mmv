@@ -106,6 +106,13 @@ void ScalerField::sqrt() {
 	}
 }
 
+void ScalerField::ln() {
+#pragma omp parallel for 
+	for (int i = 0; i < vec.size(); i++) {
+		vec[i] = std::logf(vec[i]);
+	}
+}
+
 
 
 
@@ -128,6 +135,13 @@ void ScalerField::add(const ScalerField& sf) {
 	}
 }
 
+void ScalerField::add(float v) {
+#pragma omp parallel for 
+	for (int i = 0; i < vec.size(); i++) {
+		vec[i] += v;
+	}
+}
+
 
 
 
@@ -136,6 +150,13 @@ void ScalerField::mult(const ScalerField& sf) {
 #pragma omp parallel for 
 	for (int i = 0; i < vec.size(); i++) {
 		vec[i] *= sf.vec[i];
+	}
+}
+
+void ScalerField::div(const ScalerField& sf) {
+#pragma omp parallel for 
+	for (int i = 0; i < vec.size(); i++) {
+		vec[i] /= sf.vec[i];
 	}
 }
 

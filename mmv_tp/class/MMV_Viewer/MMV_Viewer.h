@@ -26,38 +26,28 @@ class MMV_Viewer : public AppTime
 	struct function_MMV {
 		char key;
 		std::string description_function;
-		bool ctrl, alt, shift;
-		std::function<void()> func;
 
-		function_MMV(char c, std::string str, std::function<void()> func)
-			:key(c), description_function(str),
-			func(func),
-			ctrl(false), alt(false), shift(false)
-		{}
+		std::function<void(bool, bool, bool)> func;
 
-		function_MMV(char c, std::string str, std::function<void()> func, bool ctrl, bool alt, bool shift)
+		function_MMV(char c, std::string str, std::function<void(bool, bool, bool)> func)
 			:key(c), description_function(str),
-			func(func),
-			ctrl(ctrl), alt(alt), shift(shift)
+			func(func)
 		{}
 
 		bool test()const {
+			return key_state(key);
+		}
+
+		void operator()()const {
 			bool
 				ctrl_ = SDL_GetModState() & (KMOD_LCTRL | KMOD_RCTRL),
 				alt_ = SDL_GetModState() & (KMOD_LALT | KMOD_RALT),
 				shift_ = SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT);
 
-			return key_state(key)
-				&& (!ctrl && !ctrl_ || ctrl && ctrl_)
-				&& (!alt && !alt_ || alt && alt_)
-				&& (!shift && !shift_ || shift && shift_);
-		}
-
-		void operator()()const {
 			if (test()) {
 				clear_key_state(key);
 				std::cout << description_function << " ";
-				func();
+				func(ctrl_, alt_, shift_);
 				std::cout << "\t :DONE" << std::endl;
 			}
 		}

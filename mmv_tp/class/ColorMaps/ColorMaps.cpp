@@ -98,6 +98,35 @@ Color ColorMaps::Terrain_Map(float f) {
 	}
 }
 
+Color ColorMaps::Terrain_Map(float height, float slope, float laplacien, float aireD) {
+	Color Gray(0.5, 0.5, 0.5);
+
+	if (height < 0.15) {
+		return Blue();
+	}
+	else if (height < 0.2) {
+		if (slope < 0.4)
+			return Yellow() * 0.5 + Yellow() * 0.5 * laplacien * aireD * slope;
+		else
+			return Gray * 0.5 + Gray * aireD * laplacien;
+	}
+	else if (height < 0.6) {
+		if (slope < 0.3)
+			return Green() * 0.5 + Gray * aireD * slope * laplacien;
+		else
+			return Gray * 0.5 + Gray * aireD * laplacien;
+	}
+	else if (height < 0.8) {
+		return Gray * 0.5 + Gray * aireD * laplacien;
+	}
+	else {
+		if (slope < 0.4)
+			return White() * 0.5 + Gray * aireD;
+		else
+			return Gray * 0.5 + Gray * aireD * laplacien;
+	}
+}
+
 Color ColorMaps::Hot_Map(float f) {
 	const float
 		p1 = 0.4f,

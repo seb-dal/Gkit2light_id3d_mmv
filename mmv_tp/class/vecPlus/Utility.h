@@ -1,29 +1,37 @@
 #pragma once
 
-#include <chrono>
 #include <string>
 
 
 class Utility {
 public:
-	static std::string getTimeStr() {
-		std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-		std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-		std::chrono::milliseconds now2 = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
+	static std::string getTimeStr();
 
-		struct tm currentLocalTime;
-		localtime_s(&currentLocalTime, &currentTime);
+	static std::string GetCurrentWorkingDir();
 
-		char timeBuffer[80];
-		std::size_t charCount{
-			std::strftime(
-				timeBuffer,
-				80,
-				"%F %Hh%M %S",
-				&currentLocalTime
-			)
-		};
+	/*
+	https://stackoverflow.com/questions/10402499/mkdir-c-function
+	*/
 
-		return timeBuffer;
-	}
+	/**
+	 * Checks if a folder exists
+	 * @param foldername path to the folder to check.
+	 * @return true if the folder exists, false otherwise.
+	 */
+	static bool folder_exists(std::string foldername);
+
+	/**
+	* Portable wrapper for mkdir. Internally used by mkdir()
+	* @param[in] path the full path of the directory to create.
+	* @return zero on success, otherwise -1.
+	*/
+	static int _mkdir(const char* path);
+
+	/**
+	 * Recursive, portable wrapper for mkdir.
+	 * @param[in] path the full path of the directory to create.
+	 * @return zero on success, otherwise -1.
+	 */
+	static int mkdir(const char* path);
+
 };

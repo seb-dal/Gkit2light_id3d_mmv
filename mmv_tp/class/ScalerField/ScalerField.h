@@ -70,10 +70,12 @@ public:
 	vec2 Grad(uint i, uint j)const;
 
 	void sqrt();
+	void ln();
 	void mult(float v);
 	void add(const ScalerField& sf);
+	void add(float v);
 	void mult(const ScalerField& sf);
-
+	void div(const ScalerField& sf);
 
 	void normelize(float min, float max);
 	void normelize();

@@ -21,7 +21,15 @@ public:
 
 	ScalerField slopeMap();
 	ScalerField AireDrainage();
+	ScalerField Wetness() {
+		ScalerField A = AireDrainage();
+		ScalerField s = slopeMap();
+		s.add(0.1);
+		A.div(s);
 
+		A.ln();
+		return A;
+	}
 
 
 	void StreamPowerErosion(ScalerField s, ScalerField A, float k, float dt);

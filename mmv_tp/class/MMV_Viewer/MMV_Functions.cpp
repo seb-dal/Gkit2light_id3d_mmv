@@ -7,7 +7,7 @@ void MMV_Viewer::init_functions() {
 	functions.push_back(
 		function_MMV(
 			'l', "laplacien texture",
-			[&]() -> void {
+			[&](bool ctrl, bool alt, bool shift) -> void {
 				ScalerField l = hf.laplacien();
 				l.normelize();
 				l.to_image(texture);
@@ -21,14 +21,14 @@ void MMV_Viewer::init_functions() {
 	functions.push_back(
 		function_MMV(
 			'a', "Aire de drainage texture",
-			[&]() -> void {
+			[&](bool ctrl, bool alt, bool shift) -> void {
 				ScalerField a = hf.AireDrainage();
-				//a.sqrt();
+				a.sqrt();
 				a.normelize();
 				a.sqrt();
-				a.sqrt();
-				a.sqrt();
-				a.sqrt();
+				//a.sqrt();
+				//a.sqrt();
+				//a.sqrt();
 
 				a.to_image(texture);
 
@@ -41,7 +41,7 @@ void MMV_Viewer::init_functions() {
 	functions.push_back(
 		function_MMV(
 			'p', "Slope texture",
-			[&]() -> void {
+			[&](bool ctrl, bool alt, bool shift) -> void {
 				ScalerField s = hf.slopeMap();
 				s.normelize();
 				s.to_image(texture);
@@ -54,8 +54,23 @@ void MMV_Viewer::init_functions() {
 
 	functions.push_back(
 		function_MMV(
+			'w', "Wetness texture",
+			[&](bool ctrl, bool alt, bool shift) -> void {
+				ScalerField w = hf.Wetness();
+				w.normelize();
+				w.to_image(texture);
+
+				update_texture();
+			}
+		)
+	);
+
+
+
+	functions.push_back(
+		function_MMV(
 			't', "Terrain texture",
-			[&]() -> void {
+			[&](bool ctrl, bool alt, bool shift) -> void {
 				ScalerField h = ScalerField(hf);
 				ScalerField s = hf.slopeMap();
 				ScalerField l = hf.laplacien();
@@ -83,7 +98,7 @@ void MMV_Viewer::init_functions() {
 	functions.push_back(
 		function_MMV(
 			'v', "relief texture",
-			[&]() -> void {
+			[&](bool ctrl, bool alt, bool shift) -> void {
 				ScalerField l = hf.laplacien();
 
 				l.normelize();
@@ -108,13 +123,31 @@ void MMV_Viewer::init_functions() {
 	functions.push_back(
 		function_MMV(
 			'x', "export texture",
-			[&]() -> void {
-				std::stringstream name;
-				name << "Export_Texture_" << Utility::getTimeStr() << ".png";
+			[&](bool ctrl, bool alt, bool shift) -> void {
+				std::string base_path = "/exported/";
+				std::string at = Utility::GetCurrentWorkingDir();
+				std::string file;
+				file.append(at).append(base_path);
+				if (!Utility::folder_exists(file)) {
+					Utility::mkdir(file.c_str());
+				}
 
-				write_image(texture, name.str().c_str());
+				if (!ctrl) {
+					std::stringstream name;
+					name << "." << base_path << "Export_Texture_" << Utility::getTimeStr() << ".png";
 
-				std::cout << "\n" << "EXPORTED CURRENT TEXTURE: \"" << name.str().c_str() << "\"" << std::endl;
+					write_image(texture, name.str().c_str());
+
+					std::cout << "\n" << "EXPORTED CURRENT TEXTURE at: \"" << at << name.str().c_str() << "\"" << std::endl;
+				}
+				else {
+					std::stringstream name;
+					name << "." << base_path << "Export_Mesh_" << Utility::getTimeStr() << ".obj";
+					gkit_exp::write_mesh(m, name.str().c_str());
+
+					std::cout << "\n" << "EXPORTED CURRENT MESH at: \"" << at << name.str().c_str() << "\"" << std::endl;
+				}
+
 			}
 		)
 	);
@@ -123,36 +156,29 @@ void MMV_Viewer::init_functions() {
 	functions.push_back(
 		function_MMV(
 			'b', "Complete Breach",
-			[&]() -> void {
-				hf.CompleteBreach();
+			[&](bool ctrl, bool alt, bool shift) -> void {
+				std::vector<Coord2> changed = hf.CompleteBreach();
+
+				if (ctrl) {
+					std::vector<Coord2> changedEX = hf.voisinage(
+						changed,
+						Connexite::get_Connexite(Connexite::Type::M3, Connexite::Values::all, 1, 1),
+						true);
+
+					hf.smooth(changedEX);
+				}
 
 				update_Mesh();
 			}
 		)
 	);
 
-	functions.push_back(
-		function_MMV(
-			'b', "Smoothed Complete Breach",
-			[&]() -> void {
-				std::vector<Coord2> changed = hf.CompleteBreach();
-				std::vector<Coord2> changedEX = hf.voisinage(
-					changed,
-					Connexite::get_Connexite(Connexite::Type::M3, Connexite::Values::all, 1, 1),
-					true);
-
-				hf.smooth(changedEX);
-				update_Mesh();
-			},
-			true, false, false
-				)
-	);
 
 
 	functions.push_back(
 		function_MMV(
-			'n', "drainage",
-			[&]() -> void {
+			'n', "Drainage",
+			[&](bool ctrl, bool alt, bool shift) -> void {
 				float dt = 2;
 
 				//m.clear();
@@ -170,7 +196,7 @@ void MMV_Viewer::init_functions() {
 				l.normelize(-1, 1);
 
 				//printf("start erosion SP \n");
-				hf.StreamPowerErosion(s, A, 0.95, dt);
+				hf.StreamPowerErosion(s, A, 0.65, dt);
 				hf.HillSlopeErosion(l, .3f, dt);
 				hf.DebrisSlopeErosion(s, 0.47f, dt);
 				//printf("end erosion SP \n");
@@ -184,7 +210,7 @@ void MMV_Viewer::init_functions() {
 	functions.push_back(
 		function_MMV(
 			'0', "Smooth height",
-			[&]() -> void {
+			[&](bool ctrl, bool alt, bool shift) -> void {
 				hf.smooth();
 
 				update_Mesh();
@@ -196,7 +222,7 @@ void MMV_Viewer::init_functions() {
 	functions.push_back(
 		function_MMV(
 			'9', "Blur height",
-			[&]() -> void {
+			[&](bool ctrl, bool alt, bool shift) -> void {
 				hf.blur(2);
 
 				update_Mesh();

@@ -72,7 +72,7 @@ ScalerField HeightField::AireDrainage() {
 	};
 	//==========================
 
-	ScalerField AireDrainage(bbox, n, d);
+	ScalerField AireDrainage(bbox, n, d, 1.f);
 
 	std::vector<case_a> list_case(vec.size());
 
@@ -92,13 +92,11 @@ ScalerField HeightField::AireDrainage() {
 	);
 
 
-	std::vector<Connexite> moveList = Connexite::get_Connexite(Connexite::Type::C8, Connexite::Values::direction, d.x, d.y);
+	std::vector<Connexite> moveList = Connexite::get_Connexite(Connexite::Type::C4, Connexite::Values::direction, d.x, d.y);
 	int size = moveList.size();
 	bool direction[8];
 
-	for (int i = 0; i < list_case.size(); i++) {
-		case_a& c = list_case.at(i);
-
+	for (const auto& c : list_case) {
 
 		int count = 0;
 		for (uint j = 0; j < size; j++) {
