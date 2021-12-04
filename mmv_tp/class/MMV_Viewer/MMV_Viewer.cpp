@@ -51,7 +51,7 @@ int MMV_Viewer::init()
 
 	Image img(read_image("./id3d_mmv/mmv_tp/data/island.jpg"));
 
-	texture = Image(width_map, height_map, Green());
+	texture = Image(width_map, height_map, White());
 	gl_texture = make_texture(0, texture);
 
 	Point pm, pM;

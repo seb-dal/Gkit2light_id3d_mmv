@@ -74,8 +74,11 @@ public:
 	void mult(float v);
 	void add(const ScalerField& sf);
 	void add(float v);
+	void minus(float v);
 	void mult(const ScalerField& sf);
 	void div(const ScalerField& sf);
+	void abs();
+
 
 	void normelize(float min, float max);
 	void normelize();
@@ -98,6 +101,7 @@ public:
 public: // GETTER
 	Coord2 getN() { return n; }
 	BBox getBBox() { return bbox; }
+	vec2 getD() { return d; }
 
 protected:
 	std::vector<float> vec; // list h

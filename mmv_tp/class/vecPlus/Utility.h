@@ -9,6 +9,11 @@ public:
 
 	static std::string GetCurrentWorkingDir();
 
+	static int size_num(unsigned int n);
+	static std::string fast_int2str(int nb);
+
+
+
 	/*
 	https://stackoverflow.com/questions/10402499/mkdir-c-function
 	*/
@@ -35,3 +40,4 @@ public:
 	static int mkdir(const char* path);
 
 };
+

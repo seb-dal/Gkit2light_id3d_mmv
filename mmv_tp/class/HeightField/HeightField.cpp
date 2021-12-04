@@ -133,6 +133,16 @@ ScalerField HeightField::AireDrainage() {
 	return AireDrainage;
 }
 
+ScalerField HeightField::Wetness() {
+	ScalerField A = AireDrainage();
+	ScalerField s = slopeMap();
+	s.add(0.1);
+	A.div(s);
+
+	A.ln();
+	return A;
+}
+
 
 
 
@@ -174,7 +184,7 @@ std::vector<Coord2> HeightField::CompleteBreach() {
 		bool operator()(const Element& a, const Element& b)
 		{
 			const auto& lhs = a.second;
-			const auto& rhs = a.second;
+			const auto& rhs = b.second;
 
 			if (a.first > b.first) return true;
 			else if ((a.first == b.first) && (lhs.x > rhs.x || (lhs.x == rhs.x && lhs.y > rhs.y)))

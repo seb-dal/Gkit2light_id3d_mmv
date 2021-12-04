@@ -142,6 +142,13 @@ void ScalerField::add(float v) {
 	}
 }
 
+void ScalerField::minus(float v) {
+#pragma omp parallel for 
+	for (int i = 0; i < vec.size(); i++) {
+		vec[i] -= v;
+	}
+}
+
 
 
 
@@ -160,6 +167,13 @@ void ScalerField::div(const ScalerField& sf) {
 	}
 }
 
+void ScalerField::abs() {
+#pragma omp parallel for 
+	for (int i = 0; i < vec.size(); i++) {
+		vec[i] = std::abs(vec[i]);
+	}
+}
+
 
 
 
@@ -175,13 +189,13 @@ ScalerField ScalerField::laplacien() const {
 					get(std::clamp(x - 1, 0, int(n.x - 1)), y)
 					+ get(std::clamp(x + 1, 0, int(n.x - 1)), y)
 					- 2 * get(x, y)
-					) / (_2d.x)
+					) / (_dp2.x)
 				+
 				(
 					get(x, std::clamp(y - 1, 0, int(n.y - 1)))
 					+ get(x, std::clamp(y + 1, 0, int(n.y - 1)))
 					- 2 * get(x, y)
-					) / (_2d.y);
+					) / (_dp2.y);
 		}
 	}
 

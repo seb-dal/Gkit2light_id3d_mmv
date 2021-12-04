@@ -79,6 +79,8 @@ public:
 	int render();
 
 protected:
+	vect2<int> start = vect2<int>(10, 10), end = vect2<int>(390, 390);
+
 	Noise_combinaison nc;
 	Builder::params p = Builder::params(true, true);
 	std::vector<function_MMV> functions;

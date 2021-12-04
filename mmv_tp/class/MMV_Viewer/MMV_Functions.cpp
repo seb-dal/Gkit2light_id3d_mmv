@@ -1,6 +1,6 @@
 #include "MMV_Viewer.h"
 #include "../vecPlus/Utility.h"
-
+#include "../aStar/A_Star.h"
 
 void MMV_Viewer::init_functions() {
 
@@ -110,6 +110,10 @@ void MMV_Viewer::init_functions() {
 					for (int x = 0; x < hf.getN().x; x++) {
 						texture(x, y) = Color(0.5) + Color(0.35) * ((dot(hf.Grad(x, y), light) + 1) / 2.f) + Color(0.15) * (-l.get(x, y));
 
+						texture(x, y).r = std::clamp(texture(x, y).r, 0.f, 1.f);
+						texture(x, y).g = std::clamp(texture(x, y).g, 0.f, 1.f);
+						texture(x, y).b = std::clamp(texture(x, y).b, 0.f, 1.f);
+
 						texture(x, y).a = 1.f;
 					}
 				}
@@ -169,6 +173,72 @@ void MMV_Viewer::init_functions() {
 				}
 
 				update_Mesh();
+			}
+		)
+	);
+
+	functions.push_back(
+		function_MMV(
+			'1', "Path_draw",
+			[&](bool ctrl, bool alt, bool shift) -> void {
+				float
+					a = 20,
+					b = 70,
+					c = 15,
+					d = 16
+					;
+
+				ScalerField hh = ScalerField(hf);
+				ScalerField ss = hf.slopeMap();
+				ScalerField ll = hf.laplacien();
+				ScalerField aa = hf.AireDrainage();
+
+				hh.normelize();
+				ss.normelize();
+				ll.normelize();
+
+				aa.normelize();
+				aa.minus(0.5);
+				aa.abs();
+
+				auto co = Connexite::get_Connexite(Connexite::Type::C8, Connexite::Values::direction, hf.getD().x, hf.getD().y);
+
+				aStar AS(
+					co,
+					hf.getN().x, hf.getN().y,
+					[&](vect2<int> pos) ->float {
+						return a * hh.get(pos) + b * ss.get(pos) + c * ll.get(pos) + d * aa.get(pos) + 1;
+					}
+				);
+				AS.search(start, end);
+
+				for (const auto& p : AS.map_pos_open) {
+					const auto& n = AS.nodes[p.second];
+					const int x = n.pos.x;
+					const int y = n.pos.y;
+
+					texture(x, y) = Blue();
+				}
+
+				for (const auto& p : AS.map_pos_close) {
+					const auto& n = AS.nodes[p.second];
+					const int x = n.pos.x;
+					const int y = n.pos.y;
+
+					texture(x, y) = Green();
+				}
+
+				std::list<vect2<int>> path;
+				AS.path(path);
+
+				for (const auto& p : path) {
+					const int x = p.x;
+					const int y = p.y;
+
+					texture(x, y) = Red();
+				}
+
+				update_texture();
 			}
 		)
 	);

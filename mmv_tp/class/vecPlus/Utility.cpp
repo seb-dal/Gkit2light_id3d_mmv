@@ -56,6 +56,84 @@ std::string Utility::GetCurrentWorkingDir() {
 	return std::string(buff);
 }
 
+int Utility::size_num(unsigned int n) {
+	short nb = 0;
+	do {
+		if (n < 10000) {
+			if (n >= 100) {
+				nb += 2;
+				n /= 100;
+			}
+			else {
+				nb++;
+				n /= 10;
+			}
+		}
+		else {
+			if (n >= 1000) {
+				nb += 3;
+				n /= 1000;
+			}
+			else {
+				nb += 4;
+				n /= 10000;
+			}
+		}
+
+
+	} while (n);
+	return nb;
+}
+
+std::string Utility::fast_int2str(int nb) {
+	std::string num; num.reserve(12);
+	bool sign;
+	int size_nb;
+
+	if (sign = (nb < 0)) {
+		size_nb = size_num(-nb);
+		nb = -nb;
+		num += '-';
+	}
+	else {
+		size_nb = size_num(nb);
+	}
+
+	switch (size_nb) {
+	case 10:
+		num += nb / 1'000'000'000 % 10 + 48;
+
+	case 9:
+		num += nb / 100'000'000 % 10 + 48;
+
+	case 8:
+		num += nb / 10'000'000 % 10 + 48;
+
+	case 7:
+		num += nb / 1'000'000 % 10 + 48;
+
+	case 6:
+		num += nb / 100'000 % 10 + 48;
+
+	case 5:
+		num += nb / 10'000 % 10 + 48;
+
+	case 4:
+		num += nb / 1'000 % 10 + 48;
+
+	case 3:
+		num += nb / 100 % 10 + 48;
+
+	case 2:
+		num += nb / 10 % 10 + 48;
+
+	case 1:
+		num += nb % 10 + 48;
+	}
+
+	return num;
+}
+
 
 
 
