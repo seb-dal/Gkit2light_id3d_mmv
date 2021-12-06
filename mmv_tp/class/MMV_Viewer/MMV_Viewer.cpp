@@ -1,5 +1,6 @@
 #include "MMV_Viewer.h"
 
+
 void MMV_Viewer::init_noise() {
 	FastNoiseLite a;
 	a.SetNoiseType(FastNoiseLite::NoiseType::NoiseType_Cellular);
@@ -42,14 +43,16 @@ int MMV_Viewer::init()
 {
 	init_noise();
 	init_functions();
+	ms.load();
+
 
 	int height_map = 400,
 		width_map = 400;
 
 
+	//veget = read_mesh("./id3d_mmv/data/Ultimate Nature Pack/OBJ/CommonTree/CommonTree_1.obj");
 
-
-	Image img(read_image("./id3d_mmv/mmv_tp/data/island.jpg"));
+	Image img(read_image("./id3d_mmv/mmv_tp/data/a.jpg"));
 
 	texture = Image(width_map, height_map, White());
 	gl_texture = make_texture(0, texture);
@@ -64,8 +67,8 @@ int MMV_Viewer::init()
 	//hf = HeightField(nc, BBox(pm, pM), Coord2(width_map, height_map), vec2(1, 1));
 
 
-	m = hf.to_Mesh(p);
-	Builder::Compute_normal(m);
+	terrain = hf.to_Mesh(p);
+	Builder::Compute_normal(terrain);
 	//hf.updateMesh_normal(m);
 	m_camera.setFOV(75);
 	m_camera.lookat(pm, pM);
@@ -88,8 +91,14 @@ int MMV_Viewer::init()
 
 int MMV_Viewer::quit()
 {
-	m.release();
-	m.clear();
+	terrain.release();
+	terrain.clear();
+
+	groups_veget.clear();
+	veget.release();
+	veget.clear();
+	ms.destroy();
+
 	m_camera.destroy();
 	glDeleteTextures(1, &gl_texture);
 	return 0;
@@ -99,8 +108,8 @@ int MMV_Viewer::quit()
 
 
 void MMV_Viewer::update_Mesh() {
-	hf.updateMesh(m);
-	Builder::Compute_normal(m);
+	hf.updateMesh(terrain);
+	Builder::Compute_normal(terrain);
 	//hf.updateMesh_normal(m);
 }
 
@@ -127,7 +136,10 @@ int MMV_Viewer::render()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	draw(m, m_camera, gl_texture);
+	draw(terrain, m_camera, gl_texture);
+
+	draw_groups(veget, Identity(), m_camera.view(), m_camera.projection(), groups_veget);
+	//draw(veget, Scale(20), m_camera);
 
 	m_camera.draw_axes();
 	return 1;

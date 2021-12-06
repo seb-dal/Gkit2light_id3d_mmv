@@ -98,7 +98,7 @@ Color ColorMaps::Terrain_Map(float f) {
 	}
 }
 
-Color ColorMaps::Terrain_Map(float height, float slope, float laplacien, float aireD) {
+Color ColorMaps::Terrain_Map(float height, float slope, float laplacien, float aireD, float wetness) {
 	Color Gray(0.5, 0.5, 0.5);
 
 	if (height < 0.15) {

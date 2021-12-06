@@ -34,5 +34,5 @@ public:
 
 	static Color Terrain_Map(float f);
 
-	static Color Terrain_Map(float height, float slope, float laplacien, float aireD);
+	static Color Terrain_Map(float height, float slope, float laplacien, float aireD, float wetness);
 };

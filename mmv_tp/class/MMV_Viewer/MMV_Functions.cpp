@@ -1,6 +1,10 @@
 #include "MMV_Viewer.h"
+
 #include "../vecPlus/Utility.h"
 #include "../aStar/A_Star.h"
+#include "../PoissonDisk/PoissonDisk.h"
+#include "../vecPlus/gkit_expension.h"
+
 
 void MMV_Viewer::init_functions() {
 
@@ -75,21 +79,71 @@ void MMV_Viewer::init_functions() {
 				ScalerField s = hf.slopeMap();
 				ScalerField l = hf.laplacien();
 				ScalerField a = hf.AireDrainage();
+				ScalerField w = hf.Wetness();
 
 				h.normelize();
 				s.normelize();
 				l.normelize();
 				a.normelize();
+				w.normelize();
 
 #pragma omp parallel for collapse(2)
 				for (int y = 0; y < hf.getN().y; y++) {
 					for (int x = 0; x < hf.getN().x; x++) {
-						texture(x, y) = ColorMaps::Terrain_Map(h.get(x, y), s.get(x, y), l.get(x, y), a.get(x, y));
+						texture(x, y) = ColorMaps::Terrain_Map(h.get(x, y), s.get(x, y), l.get(x, y), a.get(x, y), w.get(x, y));
 					}
 				}
 
 
 				update_texture();
+			}
+		)
+	);
+
+	functions.push_back(
+		function_MMV(
+			'o', "poissondisk_test",
+			[&](bool ctrl, bool alt, bool shift) -> void {
+				if (ctrl) {
+#pragma omp parallel for collapse(2)
+					for (int y = 0; y < hf.getN().y; y++) {
+						for (int x = 0; x < hf.getN().x; x++) {
+							texture(x, y) = White();
+						}
+					}
+
+					PoissonDisk psd(std::make_pair(400, 400));
+					auto p = psd.poissonDiskSampling(8, 16);
+
+					for (const auto pp : p) {
+						texture(pp.first, pp.second) = Black();
+					}
+
+					update_texture();
+				}
+
+				if (shift) {
+					veget.clear();
+					groups_veget.clear();
+					veget.create(GL_TRIANGLES);
+
+					PoissonDisk psd(std::make_pair(399, 399));
+					auto p = psd.poissonDiskSampling(14, 16);
+					for (const auto pp : p) {
+						float theta = Utility::rand_float(360);
+						Mesh* mm = ms.getRandom_ByName("CommonTree");
+						if (mm != nullptr) {
+
+							Transform model =
+								Translation(hf.pos(pp.first, pp.second) - Vector(0, 1, 0))
+								* RotationY(theta) * Scale(20);
+
+							gkit_exp::add_mesh(veget, mm, model);
+						}
+					}
+
+					groups_veget = veget.groups();
+				}
 			}
 		)
 	);
@@ -147,7 +201,7 @@ void MMV_Viewer::init_functions() {
 				else {
 					std::stringstream name;
 					name << "." << base_path << "Export_Mesh_" << Utility::getTimeStr() << ".obj";
-					gkit_exp::write_mesh(m, name.str().c_str());
+					gkit_exp::write_mesh(terrain, name.str().c_str());
 
 					std::cout << "\n" << "EXPORTED CURRENT MESH at: \"" << at << name.str().c_str() << "\"" << std::endl;
 				}

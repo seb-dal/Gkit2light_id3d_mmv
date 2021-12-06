@@ -3,6 +3,8 @@
 #include <omp.h>
 #include <sstream>
 #include <functional>
+#include <vector>
+
 
 #include "mat.h"
 #include "mesh.h"
@@ -19,7 +21,7 @@
 #include "../Camera/Camera.h"
 #include "../HeightField/HeightField.h"
 #include "../Combi_Noise/Combi_Noise.h"
-
+#include "../Mesh_sample/Mesh_sample.h"
 
 class MMV_Viewer : public AppTime
 {
@@ -75,10 +77,19 @@ public:
 	int update(const float time, const float delta);
 
 
+	void draw_groups(Mesh& m, const Transform& model, const Transform& view, const Transform& projection, std::vector<TriangleGroup>& group) {
+		param.model(model).view(view).projection(projection);
+		for (int i = 0; i < group.size(); i++) {
+			param.draw(group[i], m);
+		}
+	}
+
 
 	int render();
 
 protected:
+	Mesh_sample ms;
+
 	vect2<int> start = vect2<int>(10, 10), end = vect2<int>(390, 390);
 
 	Noise_combinaison nc;
@@ -91,5 +102,9 @@ protected:
 	Image texture;
 	GLuint gl_texture;
 
-	Mesh m;
+	Mesh terrain, veget;
+
+	std::vector<TriangleGroup> groups_veget;
+
+	DrawParam param;
 };

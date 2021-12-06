@@ -51,10 +51,6 @@ namespace std {
 };
 
 
-class gkit_exp {
-public:
-	static int write_mesh(const Mesh& mesh, const char* filename);
-};
 
 
 class m_exp {

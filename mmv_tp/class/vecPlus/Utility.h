@@ -39,5 +39,10 @@ public:
 	 */
 	static int mkdir(const char* path);
 
+
+
+	static float rand_float(float High = 1, float Low = 0) {
+		return Low + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (High - Low)));
+	}
 };
 
