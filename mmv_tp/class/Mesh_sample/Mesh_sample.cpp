@@ -10,14 +10,25 @@ void Mesh_sample::load() {
 		{ "Rock_Moss", 7 },
 		{ "Rock_Snow", 7 },
 		{ "PineTree", 5},
-		{ "PineTree_Snow", 5}
+		{ "PineTree_Snow", 5},
+		{ "Bush", 2 },
+		{ "Bush_Snow", 2 },
+		{ "BushBerries", 2 },
+		{ "Flowers", 1 },
+		{ "Grass", 2 },
+		{ "Wheat", 1 }
 	};
 
 	for (auto c : folder_name) {
 		std::vector<Mesh> list_mesh_type;
 		for (int i = 1; i <= c.second; i++) {
 			list_mesh_type.push_back(
-				read_indexed_mesh(std::string(folder_base + c.first + "/" + c.first + "_" + std::to_string(i) + ".obj").c_str())
+				read_indexed_mesh(
+					std::string(
+						folder_base
+						+ c.first + "/"
+						+ c.first + ((c.second > 1) ? ("_" + std::to_string(i)) : "") + ".obj"
+					).c_str())
 			);
 		}
 		list_name.push_back(c.first);

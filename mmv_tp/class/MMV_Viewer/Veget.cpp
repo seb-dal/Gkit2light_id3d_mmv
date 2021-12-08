@@ -32,7 +32,7 @@ void MMV_Viewer::gen_veget() {
 	for (const auto pp : p) {
 		float height = hh.get(pp);
 		float slope = ss.get(pp);
-
+		float wetness = ww.get(pp);
 
 		float random = Utility::rand_float();
 		float theta = Utility::rand_float(360);
@@ -54,7 +54,31 @@ void MMV_Viewer::gen_veget() {
 		}
 		else if (height < 0.6) {
 			if (slope < 0.3) {
-				gkit_exp::add_mesh(veget, ms.getRandom_ByName("CommonTree"), model);
+				if (wetness > 0.7) {
+					if (random > 0.75) {
+						gkit_exp::add_mesh(veget, ms.getRandom_ByName("Flowers"), model);
+					}
+					else if (random > 0.6) {
+						gkit_exp::add_mesh(veget, ms.getRandom_ByName("Wheat"), model);
+					}
+					else {
+						gkit_exp::add_mesh(veget, ms.getRandom_ByName("Grass"), model);
+					}
+				}
+				else if (wetness > 0.5) {
+					if (random > 0.75) {
+						gkit_exp::add_mesh(veget, ms.getRandom_ByName("Bush"), model);
+					}
+					else if (random > 0.5) {
+						gkit_exp::add_mesh(veget, ms.getRandom_ByName("BushBerries"), model);
+					}
+					else {
+						gkit_exp::add_mesh(veget, ms.getRandom_ByName("Rock_Moss"), model);
+					}
+				}
+				else {
+					gkit_exp::add_mesh(veget, ms.getRandom_ByName("CommonTree"), model);
+				}
 			}
 			else {
 				gkit_exp::add_mesh(veget, ms.getRandom_ByName("Rock_Moss"), model);
@@ -70,7 +94,12 @@ void MMV_Viewer::gen_veget() {
 		}
 		else {
 			if (slope < 0.3) {
-				gkit_exp::add_mesh(veget, ms.getRandom_ByName("PineTree_Snow"), model);
+				if (random > 0.2) {
+					gkit_exp::add_mesh(veget, ms.getRandom_ByName("PineTree_Snow"), model);
+				}
+				else {
+					gkit_exp::add_mesh(veget, ms.getRandom_ByName("Bush_Snow"), model);
+				}
 			}
 			else {
 				gkit_exp::add_mesh(veget, ms.getRandom_ByName("Rock_Snow"), model);
