@@ -18,49 +18,32 @@
 #include "texture.h"
 #include "image_io.h"
 
+#include "../../lib/gkit2light_imgui/app_imgui.h"
+
 #include "../Camera/Camera.h"
 #include "../HeightField/HeightField.h"
 #include "../Combi_Noise/Combi_Noise.h"
 #include "../Mesh_sample/Mesh_sample.h"
 
-class MMV_Viewer : public AppTime
+
+class MMV_Viewer : public App_imgui
 {
-	struct function_MMV {
-		char key;
-		std::string description_function;
+	void gen_veget();
 
-		std::function<void(bool, bool, bool)> func;
-
-		function_MMV(char c, std::string str, std::function<void(bool, bool, bool)> func)
-			:key(c), description_function(str),
-			func(func)
-		{}
-
-		bool test()const {
-			return key_state(key);
-		}
-
-		void operator()()const {
-			bool
-				ctrl_ = SDL_GetModState() & (KMOD_LCTRL | KMOD_RCTRL),
-				alt_ = SDL_GetModState() & (KMOD_LALT | KMOD_RALT),
-				shift_ = SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT);
-
-			if (test()) {
-				clear_key_state(key);
-				std::cout << description_function << " ";
-				func(ctrl_, alt_, shift_);
-				std::cout << "\t :DONE" << std::endl;
-			}
-		}
-	};
+	void draw_path(
+		Coord2& start, Coord2& end,
+		float coeff_height,
+		float coeff_slope,
+		float coeff_laplacien,
+		float coeff_aire_drainage,
+		float coeff_wetness
+	);
 
 public:
-	MMV_Viewer() : AppTime(1024, 640) {}
+	MMV_Viewer() : App_imgui(1024, 640) {}
 
 	void init_noise();
 
-	void init_functions();
 
 	int init();
 
@@ -77,34 +60,25 @@ public:
 	int update(const float time, const float delta);
 
 
-	void draw_groups(Mesh& m, const Transform& model, const Transform& view, const Transform& projection, std::vector<TriangleGroup>& group) {
-		param.model(model).view(view).projection(projection);
-		for (int i = 0; i < group.size(); i++) {
-			param.draw(group[i], m);
-		}
-	}
 
+	int render_UI();
 
 	int render();
 
 protected:
 	Mesh_sample ms;
 
-	vect2<int> start = vect2<int>(10, 10), end = vect2<int>(390, 390);
-
 	Noise_combinaison nc;
 	Builder::params p = Builder::params(true, true);
-	std::vector<function_MMV> functions;
 
 	Camera m_camera;
 	HeightField hf;
+
 
 	Image texture;
 	GLuint gl_texture;
 
 	Mesh terrain, veget;
-
 	std::vector<TriangleGroup> groups_veget;
 
-	DrawParam param;
 };

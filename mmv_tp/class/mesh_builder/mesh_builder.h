@@ -12,6 +12,8 @@ public:
 	struct params {
 		bool normal;
 		bool textcoord;
+
+		// n:normal, t:texcoord 
 		params(bool n, bool t) :normal(n), textcoord(t) {}
 	};
 

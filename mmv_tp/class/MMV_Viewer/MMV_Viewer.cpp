@@ -1,5 +1,7 @@
 #include "MMV_Viewer.h"
 
+#include "../vecPlus/gkit_expension.h"
+
 
 void MMV_Viewer::init_noise() {
 	FastNoiseLite a;
@@ -39,10 +41,14 @@ void MMV_Viewer::init_noise() {
 }
 
 
+
+
+
 int MMV_Viewer::init()
 {
+	glCullFace(true);
+
 	init_noise();
-	init_functions();
 	ms.load();
 
 
@@ -109,9 +115,11 @@ int MMV_Viewer::quit()
 
 void MMV_Viewer::update_Mesh() {
 	hf.updateMesh(terrain);
-	Builder::Compute_normal(terrain);
-	//hf.updateMesh_normal(m);
+
+	if (p.normal)
+		Builder::Compute_normal(terrain);
 }
+
 
 
 
@@ -121,16 +129,18 @@ void MMV_Viewer::update_texture() {
 	gl_texture = make_texture(1, texture);
 }
 
+
+
+
 int MMV_Viewer::update(const float time, const float delta) {
-	m_camera.update(delta);
-
-	for (const auto& f : functions) {
-		f();
+	if (!ImGui::GetIO().WantCaptureMouse) {
+		m_camera.update(delta);
 	}
-
 
 	return 0;
 }
+
+
 
 int MMV_Viewer::render()
 {
@@ -138,7 +148,7 @@ int MMV_Viewer::render()
 
 	draw(terrain, m_camera, gl_texture);
 
-	draw_groups(veget, Identity(), m_camera.view(), m_camera.projection(), groups_veget);
+	gkit_exp::draw_groups(veget, Identity(), m_camera.view(), m_camera.projection(), groups_veget);
 	//draw(veget, Scale(20), m_camera);
 
 	m_camera.draw_axes();

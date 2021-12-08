@@ -4,7 +4,13 @@ void Mesh_sample::load() {
 	std::string folder_base = "./id3d_mmv/data/Ultimate Nature Pack/OBJ/";
 
 	std::pair<std::string, int> folder_name[] = {
-		{ "CommonTree", 5 }
+		{ "CommonTree", 5 },
+		{ "PalmTree", 5 },
+		{ "Rock", 7 },
+		{ "Rock_Moss", 7 },
+		{ "Rock_Snow", 7 },
+		{ "PineTree", 5},
+		{ "PineTree_Snow", 5}
 	};
 
 	for (auto c : folder_name) {

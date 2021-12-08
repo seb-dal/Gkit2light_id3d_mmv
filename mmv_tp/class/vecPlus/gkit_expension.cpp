@@ -139,3 +139,45 @@ void gkit_exp::add_mesh(Mesh& m, Mesh* m2, Transform t) {
 		}
 	}
 }
+
+
+
+
+
+void gkit_exp::draw_groups(Mesh& m, const Transform& model, const Transform& view, const Transform& projection, std::vector<TriangleGroup>& group) {
+	static DrawParam param;
+	param.model(model).view(view).projection(projection);
+	for (int i = 0; i < group.size(); i++) {
+		param.draw(group[i], m);
+	}
+}
+
+
+
+
+
+
+bool gkit_exp::key_state_then_clear(char key) {
+	if (key_state(key)) {
+		clear_key_state(key);
+		return true;
+	}
+	return false;
+}
+
+
+
+
+
+
+bool gkit_exp::ctrl() {
+	return SDL_GetModState() & (KMOD_LCTRL | KMOD_RCTRL);
+}
+
+bool gkit_exp::alt() {
+	return SDL_GetModState() & (KMOD_LALT | KMOD_RALT);
+}
+
+bool gkit_exp::shift() {
+	return  SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT);
+}
