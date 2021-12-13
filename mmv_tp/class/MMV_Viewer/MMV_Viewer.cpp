@@ -38,6 +38,18 @@ void MMV_Viewer::init_noise() {
 	c.SetFrequency(0.005);
 
 	nc.add(c);
+
+
+
+	FastNoiseLite w;
+	w.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+	w.SetFrequency(0.016);
+	w.SetFractalType(FastNoiseLite::FractalType_FBm);
+	w.SetFractalOctaves(5);
+	w.SetFractalLacunarity(2);
+	w.SetFractalGain(0.5);
+
+	Water_noise.add(w);
 }
 
 
@@ -52,31 +64,32 @@ int MMV_Viewer::init()
 	ms.load();
 
 
-	int height_map = 400,
-		width_map = 400;
-
-
 	//veget = read_mesh("./id3d_mmv/data/Ultimate Nature Pack/OBJ/CommonTree/CommonTree_1.obj");
 
+	//Image img(read_image("./id3d_mmv/mmv_tp/data/island.jpg"));  //a.jpg
 	Image img(read_image("./id3d_mmv/mmv_tp/data/a.jpg"));
+
 
 	texture = Image(width_map, height_map, White());
 	gl_texture = make_texture(0, texture);
 
 	Point pm, pM;
-	pM.x = 1400;
-	pM.y = 500;
-	pM.z = 1400;
+	pM.x = width_map * 2.5;
+	pM.y = 64;
+	pM.z = height_map * 2.5;
 
-
-	hf = HeightField(img, BBox(pm, pM), Coord2(width_map, height_map), vec2(1, 1));
+	map_box = BBox(pm, pM);
+	hf = HeightField(img, map_box, Coord2(width_map, height_map), vec2(1, 1));
 	//hf = HeightField(nc, BBox(pm, pM), Coord2(width_map, height_map), vec2(1, 1));
 
 
 	terrain = hf.to_Mesh(p);
 	Builder::Compute_normal(terrain);
+
+	water = Builder::flat_Mesh(width_map, height_map, map_box, pw);
 	//hf.updateMesh_normal(m);
-	m_camera.setFOV(75);
+	//m_camera.setFOV(75);
+	m_camera.projection(window_width(), window_height(), 75);
 	m_camera.lookat(pm, pM);
 	m_camera.move_speed = 5;
 	m_camera.move_speedup = 10;
@@ -97,6 +110,9 @@ int MMV_Viewer::init()
 
 int MMV_Viewer::quit()
 {
+	water.release();
+	water.clear();
+
 	terrain.release();
 	terrain.clear();
 
@@ -137,6 +153,19 @@ int MMV_Viewer::update(const float time, const float delta) {
 		m_camera.update(delta);
 	}
 
+	if (render_water) {
+		const auto& pos = water.positions(), & pos2 = terrain.positions();
+		float time_speed = time * 0.01;
+#pragma omp parallel for
+		for (int i = 0; i < water.vertex_count(); i++) {
+			if (pos2[i].y < map_box.pmax.y * min_water_palier) {
+				Point p = pos[i];
+				p.y = map_box.pmax.y * min_water + Water_noise.getHeight(p.x + time_speed, p.z + time_speed) * height_water + water_level;
+				water.vertex(i, p);
+			}
+		}
+	}
+
 	return 0;
 }
 
@@ -146,9 +175,15 @@ int MMV_Viewer::render()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	if (render_water) {
+		draw(water, m_camera);
+	}
+
 	draw(terrain, m_camera, gl_texture);
 
-	gkit_exp::draw_groups(veget, Identity(), m_camera.view(), m_camera.projection(), groups_veget);
+	if (render_veget) {
+		gkit_exp::draw_groups(veget, Identity(), m_camera.view(), m_camera.projection(), groups_veget);
+	}
 	//draw(veget, Scale(20), m_camera);
 
 	m_camera.draw_axes();

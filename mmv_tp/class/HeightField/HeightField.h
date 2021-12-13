@@ -36,25 +36,7 @@ public:
 	void HillSlopeErosion(ScalerField lap, float k, float dt);
 	void DebrisSlopeErosion(ScalerField s, float k, float dt);
 
-	ScalerField terrain_type() {
-		ScalerField h = ScalerField(*this);
-		ScalerField s = slopeMap();
-		ScalerField l = laplacien();
-		ScalerField a = AireDrainage();
-		ScalerField w = Wetness();
 
-		h.normelize();
-		s.normelize();
-		l.normelize();
-		a.normelize();
-		w.normelize();
-
-#pragma omp parallel for collapse(2)
-		for (int y = 0; y < n.y; y++) {
-			for (int x = 0; x < n.x; x++) {
-			}
-		}
-	}
 	std::vector<Coord2> CompleteBreach();
 
 

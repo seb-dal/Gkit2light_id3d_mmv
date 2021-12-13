@@ -178,7 +178,7 @@ void HeightField::DebrisSlopeErosion(ScalerField s, float k, float dt) {
 
 
 void HeightField::updateMesh_normal(Mesh& m) {
-	Builder::Compute_normal(m, n.y, n.x,
+	Builder::Compute_normal(m, n.x, n.y,
 		[&](const int x, const int y) {
 			Vector n = Normal(x, y);
 			return normalize(Vector(n.x, n.z, n.y));

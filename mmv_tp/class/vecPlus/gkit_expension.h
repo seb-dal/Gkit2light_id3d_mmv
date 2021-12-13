@@ -15,7 +15,7 @@ public:
 
 	static void draw_groups(Mesh& m, const Transform& model, const Transform& view, const Transform& projection, std::vector<TriangleGroup>& group);
 
-	static bool key_state_then_clear(char key);
+	static bool key_state_then_clear(SDL_Keycode key);
 
 	static bool ctrl();
 	static bool alt();

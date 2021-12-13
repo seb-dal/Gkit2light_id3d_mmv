@@ -16,8 +16,8 @@ void MMV_Viewer::draw_path(
 	ScalerField aa = hf.AireDrainage();
 	ScalerField ww = hf.Wetness();
 
-	hh.normelize();
-	ss.normelize();
+	hh.normelize(map_box.pmin.y, map_box.pmax.y, 0, 1);
+	ss.normelize(0, 90, 0, 1);
 	ll.normelize();
 	ww.normelize();
 

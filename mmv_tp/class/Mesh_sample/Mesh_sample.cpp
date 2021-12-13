@@ -5,6 +5,7 @@ void Mesh_sample::load() {
 
 	std::pair<std::string, int> folder_name[] = {
 		{ "CommonTree", 5 },
+		{ "BirchTree", 5 },
 		{ "PalmTree", 5 },
 		{ "Rock", 7 },
 		{ "Rock_Moss", 7 },
@@ -16,7 +17,8 @@ void Mesh_sample::load() {
 		{ "BushBerries", 2 },
 		{ "Flowers", 1 },
 		{ "Grass", 2 },
-		{ "Wheat", 1 }
+		{ "Wheat", 1 },
+		{ "Plant", 5 }
 	};
 
 	for (auto c : folder_name) {

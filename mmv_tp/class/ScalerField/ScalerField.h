@@ -79,7 +79,7 @@ public:
 	void div(const ScalerField& sf);
 	void abs();
 
-
+	void normelize(float min_o, float max_0, float min, float max);
 	void normelize(float min, float max);
 	void normelize();
 

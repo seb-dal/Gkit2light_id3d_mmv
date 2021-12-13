@@ -5,10 +5,29 @@
 #include "../aStar/A_Star.h"
 
 int MMV_Viewer::render_UI() {
-	static bool win_erosion = false, win_texture = false, win_manipulation, mb_cullface = false;
+	static bool
+		win_erosion = false,
+		win_texture = false,
+		win_manipulation = false,
+		mb_cullface = false,
+		main_open = true;
+
+	if (gkit_exp::key_state_then_clear(SDLK_F1))
+		main_open = !main_open;
+
+	if (gkit_exp::key_state_then_clear(SDLK_F2))
+		win_erosion = !win_erosion;
+
+	if (gkit_exp::key_state_then_clear(SDLK_F3))
+		win_texture = !win_texture;
+
+	if (gkit_exp::key_state_then_clear(SDLK_F4))
+		win_manipulation = !win_manipulation;
 
 	/* Main Winows */ {
-		ImGui::Begin("Main Winows");
+		ImGui::Begin("Main Winows", &main_open);
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
 		/*if (ImGui::BeginMenuBar()) {
 
 
@@ -21,11 +40,13 @@ int MMV_Viewer::render_UI() {
 				glDisable(GL_CULL_FACE);
 		}
 
+		ImGui::Checkbox("render water", &render_water);
+
 		ImGui::Separator();
 
-		ImGui::Checkbox("Windows Erosion", &win_erosion);
-		ImGui::Checkbox("Windows Textures", &win_texture);
-		ImGui::Checkbox("Windows Manipulation", &win_manipulation);
+		ImGui::Checkbox("Windows Erosion (f2)", &win_erosion);
+		ImGui::Checkbox("Windows Textures (f3)", &win_texture);
+		ImGui::Checkbox("Windows Manipulation (f4)", &win_manipulation);
 		ImGui::End();
 	}
 
@@ -82,14 +103,14 @@ int MMV_Viewer::render_UI() {
 
 		bool breaching = gkit_exp::key_state_then_clear('b');
 
-		if (ImGui::Button("Complete Breach") || (breaching && !gkit_exp::ctrl())) {
+		if (ImGui::Button("Complete Breach (b)") || (breaching && !gkit_exp::ctrl())) {
 			hf.CompleteBreach();
 			update_Mesh();
 		}
 		ImGui::SameLine();
 		ImGui::Text("  ");
 		ImGui::SameLine();
-		if (ImGui::Button("Smoothed Complete Breach") || (breaching && gkit_exp::ctrl())) {
+		if (ImGui::Button("Smoothed Complete Breach (ctrl-b)") || (breaching && gkit_exp::ctrl())) {
 			std::vector<Coord2> changed = hf.CompleteBreach();
 
 			std::vector<Coord2> changedEX = hf.voisinage(
@@ -153,8 +174,8 @@ int MMV_Viewer::render_UI() {
 			ScalerField a = hf.AireDrainage();
 			ScalerField w = hf.Wetness();
 
-			h.normelize();
-			s.normelize();
+			h.normelize(map_box.pmin.y, map_box.pmax.y, 0, 1);
+			//s.normelize(0, 90, 0, 1);
 			l.normelize();
 			a.normelize();
 			w.normelize();
@@ -200,8 +221,8 @@ int MMV_Viewer::render_UI() {
 				}
 			}
 
-			PoissonDisk psd(std::make_pair(400, 400));
-			auto p = psd.poissonDiskSampling(8, 16);
+			PoissonDisk psd(std::make_pair(width_map, height_map), 8, 16);
+			auto p = psd.poissonDiskSampling();
 
 			for (const auto pp : p) {
 				texture(pp.first, pp.second) = Black();
@@ -252,8 +273,18 @@ int MMV_Viewer::render_UI() {
 		ImGui::Begin("Manipulation", &win_manipulation);
 
 		if (ImGui::TreeNode("Veget")) {
-			if (ImGui::Button("Veget")) {
+			if (ImGui::Button("Veget (v)") || gkit_exp::key_state_then_clear('v')) {
 				gen_veget();
+			}
+
+			static bool hide;
+			if (ImGui::Checkbox("Hide", &hide)) {
+				render_veget = !hide;
+			}
+
+			if (ImGui::Button("Clear")) {
+				groups_veget.clear();
+				veget.clear();
 			}
 
 			ImGui::TreePop();
@@ -262,7 +293,7 @@ int MMV_Viewer::render_UI() {
 
 		if (ImGui::TreeNode("Path")) {
 			static Coord2
-				start(10, 10), end(390, 390);
+				start(10, 10), end(width_map - 10, height_map - 10);
 
 			static float
 				coeff_height = 20,

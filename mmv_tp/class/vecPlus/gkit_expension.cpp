@@ -157,7 +157,7 @@ void gkit_exp::draw_groups(Mesh& m, const Transform& model, const Transform& vie
 
 
 
-bool gkit_exp::key_state_then_clear(char key) {
+bool gkit_exp::key_state_then_clear(SDL_Keycode key) {
 	if (key_state(key)) {
 		clear_key_state(key);
 		return true;

@@ -207,25 +207,29 @@ ScalerField ScalerField::laplacien() const {
 
 
 
+void ScalerField::normelize(float min_o, float max_0, float min, float max) {
+	float div = max_0 - min_o;
+#pragma omp parallel for
+	for (int i = 0; i < vec.size(); i++) {
+		vec[i] = ((vec[i] - min_o) / (div)) * (max - min) + min;
+	}
+}
+
 void ScalerField::normelize(float min, float max) {
 	const auto minmax = std::minmax_element(vec.begin(), vec.end());
 
-	float mini = *minmax.first;
-	float div = *minmax.second - *minmax.first;
-#pragma omp parallel for
-	for (int i = 0; i < vec.size(); i++) {
-		vec[i] = ((vec[i] - mini) / (div)) * (max - min) + min;
-	}
-
+	normelize(*minmax.first, *minmax.second, min, max);
 }
-
-
-
 
 
 void ScalerField::normelize() {
 	normelize(0, 1);
 }
+
+
+
+
+
 
 std::vector<Coord2> ScalerField::voisinage(const std::vector<Coord2>& points, std::vector<Connexite>& c, bool selfInclude) {
 	std::vector<Coord2> voisin;
@@ -384,5 +388,5 @@ void ScalerField::to_image(Image& img) {
 
 
 void ScalerField::updateMesh(Mesh& m) {
-	Builder::Compute_Height(m, n.y, n.x, bbox, [&](const int x, const int y) { return get(x, y) / (bbox.pmax.y - bbox.pmin.y); });
+	Builder::Compute_Height(m, n.x, n.y, bbox, [&](const int x, const int y) { return get(x, y) / (bbox.pmax.y - bbox.pmin.y); });
 }

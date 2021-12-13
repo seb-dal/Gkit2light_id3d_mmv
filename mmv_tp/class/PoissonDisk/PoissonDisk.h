@@ -3,10 +3,15 @@
 #include <cmath>
 #include <vector>
 
-#include "../vecPlus/Utility.h"
-#include <src/gKit/mat.h>
+static const double to_rad = M_PI / 180.f;
+static float rad(const float deg)
+{
+	return to_rad * deg;
+}
 
-
+static float rand_float(float High = 1, float Low = 0) {
+	return Low + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (High - Low)));
+}
 
 
 class PoissonDisk {
@@ -18,13 +23,16 @@ class PoissonDisk {
 		return std::sqrtf(dx * dx + dy * dy);
 	}
 
-public:
-	PoissonDisk(std::pair<int, int>& size) {
-		width = size.first;
-		height = size.second;
+
+
+	void insertPoint(const std::pair<float, float>& point) {
+		int xindex = floor(point.first / cellsize);
+		int yindex = floor(point.second / cellsize);
+		grid[xindex + yindex * ncells_width] = point;
 	}
 
-	bool isValidPoint(std::pair<float, float>& p, float radius) {
+
+	bool isValidPoint(const std::pair<float, float>& p) {
 		/* Make sure the point is on the screen */
 		if (p.first < 0 || p.first >= width || p.second < 0 || p.second >= height)
 			return false;
@@ -49,20 +57,17 @@ public:
 		return true;
 	}
 
-
-
-	void insertPoint(std::pair<float, float>& point) {
-		int xindex = floor(point.first / cellsize);
-		int yindex = floor(point.second / cellsize);
-		grid[xindex + yindex * ncells_width] = point;
-	}
-
-
-
-	std::vector<std::pair<float, float>> poissonDiskSampling(float radius, int k) {
-		std::vector<std::pair<float, float>> points, active;
-
-		std::pair<float, float> p0 = std::make_pair(Utility::rand_float(width), Utility::rand_float(height));
+public:
+	/**
+	 * Create a 2D PoissonDisk distribution.
+	 *
+	 * \param size size of the map
+	 * \param radius space taken by a point
+	 * \param k number of tries to find a new points in the neiborhood
+	 */
+	PoissonDisk(std::pair<int, int>& size, float radius, int k) :k(k), radius(radius) {
+		width = size.first;
+		height = size.second;
 
 		cellsize = std::max(std::floorf(radius / std::sqrtf(N)), 1.f);
 
@@ -76,10 +81,27 @@ public:
 				grid.at(i + j * ncells_width) = null;
 			}
 		}
+	}
 
-		insertPoint(p0);
-		points.push_back(p0);
-		active.push_back(p0);
+
+
+	void add_point(const std::pair<float, float>& p) {
+		insertPoint(p);
+		points.push_back(p);
+		active.push_back(p);
+	}
+
+	/**
+	 * Execute the computing of PoissonDisk.
+	 *
+	 * \return list of points
+	 */
+	std::vector<std::pair<float, float>> poissonDiskSampling() {
+		if (active.empty()) {
+			std::pair<float, float> p0 = std::make_pair(rand_float(width), rand_float(height));
+			add_point(p0);
+		}
+
 
 		while (!active.empty()) {
 			int random_index = rand() % int(active.size());
@@ -87,18 +109,18 @@ public:
 
 			bool found = false;
 			for (int tries = 0; tries < k; tries++) {
-				float theta = Utility::rand_float(360);
-				float new_radius = Utility::rand_float(2 * radius, radius);
-				float pnewx = p.first + new_radius * std::cos(radians(theta));
-				float pnewy = p.second + new_radius * std::sin(radians(theta));
+				float theta = rand_float(360);
+				float new_radius = rand_float(2 * radius, radius);
+				float pnewx = p.first + new_radius * std::cos(rad(theta));
+				float pnewy = p.second + new_radius * std::sin(rad(theta));
+
 				std::pair<float, float> pnew = std::make_pair(pnewx, pnewy);
-				if (!isValidPoint(pnew, radius)) {
+				if (!isValidPoint(pnew)) {
 					continue;
 				}
 
-				points.push_back(pnew);
-				insertPoint(pnew);
-				active.push_back(pnew);
+				add_point(pnew);
+
 				found = true;
 				break;
 			}
@@ -112,9 +134,11 @@ public:
 
 
 public:
+	std::vector<std::pair<float, float>> points, active;
+
 	int N = 2;
-	int width, height, ncells_width, ncells_height;
+	int width, height, ncells_width, ncells_height, k;
 	std::vector<std::pair<float, float>> grid;
 
-	float cellsize;
+	float cellsize, radius;
 };
