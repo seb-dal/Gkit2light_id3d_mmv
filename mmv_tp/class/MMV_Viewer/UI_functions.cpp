@@ -1,7 +1,8 @@
 #include "MMV_Viewer.h"
 
 #include "../PoissonDisk/PoissonDisk.h"
-
+#include "../vecPlus/Utility.h"
+#include "../vecPlus/gkit_expension.h"
 
 
 
@@ -206,5 +207,43 @@ void MMV_Viewer::poissonDisk_test_texture() {
 	}
 
 	update_texture();
+}
+
+
+
+
+
+void MMV_Viewer::Export_init() {
+	local_folder = Utility::GetCurrentWorkingDir();
+	std::string file;
+	file.append(local_folder).append(export_path_folder);
+	if (!Utility::folder_exists(file)) {
+		Utility::mkdir(file.c_str());
+	}
+}
+
+
+
+
+
+void MMV_Viewer::export_Texture() {
+	std::stringstream name;
+	name << "." << export_path_folder << "Export_Texture_" << Utility::getTimeStr() << ".png";
+
+	write_image(texture, name.str().c_str());
+
+	std::cout << "\n" << "EXPORTED CURRENT TEXTURE at: \"" << local_folder << name.str().c_str() << "\"" << std::endl;
+}
+
+
+
+
+
+void MMV_Viewer::export_terrain() {
+	std::stringstream name;
+	name << "." << export_path_folder << "Export_Mesh_" << Utility::getTimeStr() << ".obj";
+	gkit_exp::write_mesh(terrain, name.str().c_str());
+
+	std::cout << "\n" << "EXPORTED CURRENT MESH at: \"" << local_folder << name.str().c_str() << "\"" << std::endl;
 }
 

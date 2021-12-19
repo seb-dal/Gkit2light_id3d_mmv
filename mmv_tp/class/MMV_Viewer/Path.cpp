@@ -33,14 +33,17 @@ void MMV_Viewer::draw_path(
 
 	aStar AS(
 		co,
-		hf.getN().x, hf.getN().y,
+		X_texture, Y_texture,
 		[&](vect2<int> pos) ->float {
+			float xx = pos.x / float(X_texture);
+			float yy = pos.y / float(Y_texture);
+
 			return
-				coeff_height * hh.get(pos)
-				+ coeff_slope * ss.get(pos)
-				+ coeff_laplacien * ll.get(pos)
-				+ coeff_aire_drainage * aa.get(pos)
-				+ coeff_wetness * ww.get(pos)
+				coeff_height * hh.interp(xx, yy)
+				+ coeff_slope * ss.interp(xx, yy)
+				+ coeff_laplacien * ll.interp(xx, yy)
+				+ coeff_aire_drainage * aa.interp(xx, yy)
+				+ coeff_wetness * ww.interp(xx, yy)
 				+ 1;
 		}
 	);

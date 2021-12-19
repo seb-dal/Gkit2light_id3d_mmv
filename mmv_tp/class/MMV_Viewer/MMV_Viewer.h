@@ -43,9 +43,10 @@ public:
 	MMV_Viewer() : App_imgui(1020, 540) {}
 
 	void load_water(int width, int height);
-
 	void load_texture(int width, int height);
 	void load_height_map(const char* path, const Point& domain);
+
+
 	void init_noise();
 	int init();
 
@@ -86,12 +87,18 @@ public:
 
 	void poissonDisk_test_texture();
 
+	void Export_init();
+
+	void export_Texture();
+
+	void export_terrain();
 
 protected:
 	BBox World_box;
 
 	int
 		X_map = 200,
+		Y_height_map = 64,
 		Z_map = 200;
 
 	int
@@ -137,4 +144,7 @@ protected:
 	Mesh terrain, veget, water;
 	std::vector<TriangleGroup> groups_veget;
 
+
+	std::string export_path_folder = "/exported/";
+	std::string local_folder;
 };

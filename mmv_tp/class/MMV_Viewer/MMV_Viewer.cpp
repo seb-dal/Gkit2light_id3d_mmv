@@ -6,6 +6,7 @@
 void MMV_Viewer::load_water(int width, int height) {
 	if (water.vertex_count() > 0) {
 		water.clear();
+		water.release();
 	}
 
 	X_Water = width;
@@ -33,7 +34,12 @@ void MMV_Viewer::load_texture(int width, int height) {
 void MMV_Viewer::load_height_map(const char* path, const Point& domain) {
 	if (terrain.vertex_count() > 0) {
 		terrain.clear();
+		terrain.release();
 	}
+
+	X_map = domain.x;
+	Y_height_map = domain.y;
+	Z_map = domain.z;
 
 	Image img(read_image(path));
 
@@ -117,10 +123,10 @@ int MMV_Viewer::init()
 
 	init_noise();
 	ms.load();
-
+	Export_init();
 
 	load_texture(X_texture, Y_texture);
-	load_height_map("./id3d_mmv/mmv_tp/data/a.jpg", Point(X_map, 64, Z_map));
+	load_height_map("./id3d_mmv/mmv_tp/data/a.jpg", Point(X_map, Y_height_map, Z_map));
 
 	//veget = read_mesh("./id3d_mmv/data/Ultimate Nature Pack/OBJ/CommonTree/CommonTree_1.obj");
 
@@ -192,13 +198,15 @@ int MMV_Viewer::update(const float time, const float delta) {
 	}
 
 	if (render_water) {
-		const auto
-			& pos = water.positions();
+		const auto& pos = water.positions();
+
+
 
 		float time_speed = time * 0.01;
 
 		float time_x = cos(time_speed * 0.01) * sin(0.368 + time_speed * 0.008) * 100;
 		float time_z = sin(time_speed * 0.01) * cos(1.2358 + time_speed * 0.015) * 100;
+
 
 #pragma omp parallel for
 		for (int i = 0; i < water.vertex_count(); i++) {

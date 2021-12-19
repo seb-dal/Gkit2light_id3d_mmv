@@ -16,14 +16,12 @@ open_file_windows = false;
 
 #define PATH_SIZE 600
 static char
-path_buf[PATH_SIZE];
+path_buf[PATH_SIZE] = "./id3d_mmv/mmv_tp/data/a.jpg";
 
 
-static int
-X_map_ = 400,
-Y_map_ = 400,
-Z_map_ = 400;
 
+#define MIN_SIZE_TEXTURE 50
+#define MIN_SIZE_MAP 50
 
 static std::string
 waring_load = "";
@@ -33,6 +31,19 @@ static std::string extension[] = {
 };
 
 int MMV_Viewer::render_UI() {
+	static int
+		X_map_ = X_map,
+		Y_map_ = Y_height_map,
+		Z_map_ = Z_map;
+	static int
+		X_texture_ = X_texture,
+		Y_texture_ = Y_texture;
+	static int
+		X_Water_ = X_Water,
+		Z_Water_ = Z_Water;
+
+
+
 	if (gkit_exp::key_state_then_clear(SDLK_F1))
 		main_open = !main_open;
 
@@ -46,47 +57,63 @@ int MMV_Viewer::render_UI() {
 		win_manipulation = !win_manipulation;
 
 
+
+	if (ImGui::BeginMainMenuBar()) {
+		if (ImGui::MenuItem("Open Height field", "Ctrl+O")) {
+			open_file_windows = !open_file_windows;
+		}
+
+		if (ImGui::MenuItem("Export terrain Height field", "Ctrl+x")) {
+			export_terrain();
+		}
+
+		ImGui::EndMainMenuBar();
+	}
+
+
+	/* Terrain loading winows */if (open_file_windows) {
+		ImGui::Begin("Open Height field", &open_file_windows);
+
+		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), waring_load.c_str());
+
+		ImGui::InputText("Path", path_buf, PATH_SIZE);
+
+
+		ImGui::InputInt("Domain X map", &X_map_);
+		if (X_map_ < MIN_SIZE_MAP) { X_map_ = MIN_SIZE_MAP; }
+		ImGui::InputInt("Domain Y map", &Y_map_);
+		if (Y_map_ < MIN_SIZE_MAP) { Y_map_ = MIN_SIZE_MAP; }
+		ImGui::InputInt("Domain Z map", &Z_map_);
+		if (Z_map_ < MIN_SIZE_MAP) { Z_map_ = MIN_SIZE_MAP; }
+
+		if (ImGui::Button("Load")) {
+			if (Utility::str_iendwith(std::string(path_buf), extension)) {
+				if (Utility::file_exist(path_buf)) {
+
+					load_height_map(path_buf, Point(X_map_, Y_map_, Z_map_));
+
+
+				}
+				else {
+					waring_load = "Le chemin vers le fichier n'est pas valide";
+				}
+			}
+			else {
+				waring_load = "L'extension du fichier n'est pas valide, seul .png et .jpg sont utilisable";
+			}
+		}
+		ImGui::End();
+	}
+
+
+
 	/* Main Winows */ {
 		ImGui::SetNextWindowCollapsed(main_open);
 
-		ImGui::Begin("Main Winows (F1)");
+		main_open = !ImGui::Begin("Main Winows (F1)");
+
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-		if (ImGui::BeginMenuBar()) {
-			if (ImGui::MenuItem("Open Height field", "Ctrl+O")) {
-				ImGui::Begin("Open Height field", &open_file_windows);
-
-				ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), waring_load.c_str());
-
-				ImGui::InputText("Path", path_buf, PATH_SIZE);
-
-
-				ImGui::InputInt("Domain X map", &X_map_, 50, 4000);
-				ImGui::InputInt("Domain Y map", &Y_map_, 50, 4000);
-				ImGui::InputInt("Domain Z map", &Z_map_, 50, 4000);
-
-				if (ImGui::Button("Load")) {
-					if (Utility::str_endwith(std::string(path_buf), extension)) {
-						if (Utility::file_exist(path_buf)) {
-
-
-
-
-						}
-						else {
-							waring_load = "Le chemin vers le fichier n'est pas valide";
-						}
-					}
-					else {
-						waring_load = "L'extension du fichier n'est pas valide, seul .png et .jpg sont utilisable";
-					}
-				}
-
-				ImGui::End();
-			}
-
-			ImGui::EndMenuBar();
-		}
 
 		if (ImGui::Checkbox("Cull face", &mb_cullface)) {
 			if (mb_cullface)
@@ -164,6 +191,17 @@ int MMV_Viewer::render_UI() {
 	/* Texture Terrain */if (win_texture) {
 		ImGui::Begin("Texture terrain (F3)", &win_texture);
 
+		ImGui::InputInt("Domain X map", &X_texture_);
+		if (X_texture_ < MIN_SIZE_MAP) { X_texture_ = MIN_SIZE_MAP; }
+		ImGui::InputInt("Domain Y map", &Y_texture_);
+		if (Y_texture_ < MIN_SIZE_MAP) { Y_texture_ = MIN_SIZE_MAP; }
+
+		if (ImGui::Button("Change size Texture")) {
+			load_texture(X_texture_, Y_texture_);
+		}
+
+		ImGui::Separator();
+
 		if (ImGui::Button("laplacien (l)") || gkit_exp::key_state_then_clear('l')) {
 			laplacien_texture();
 		}
@@ -195,33 +233,12 @@ int MMV_Viewer::render_UI() {
 
 		ImGui::Separator();
 		/* Export */ {
-			std::string base_path = "/exported/";
-			std::string at = Utility::GetCurrentWorkingDir();
-			std::string file;
-			file.append(at).append(base_path);
-			if (!Utility::folder_exists(file)) {
-				Utility::mkdir(file.c_str());
-			}
+
 
 			bool export_item = gkit_exp::key_state_then_clear('x');
 
 			if (ImGui::Button("Export texture (x)") || (export_item && !gkit_exp::ctrl())) {
-				std::stringstream name;
-				name << "." << base_path << "Export_Texture_" << Utility::getTimeStr() << ".png";
-
-				write_image(texture, name.str().c_str());
-
-				std::cout << "\n" << "EXPORTED CURRENT TEXTURE at: \"" << at << name.str().c_str() << "\"" << std::endl;
-			}
-			ImGui::SameLine();
-			ImGui::Text("  ");
-			ImGui::SameLine();
-			if (ImGui::Button("Export Mesh (ctrl-x)") || (export_item && gkit_exp::ctrl())) {
-				std::stringstream name;
-				name << "." << base_path << "Export_Mesh_" << Utility::getTimeStr() << ".obj";
-				gkit_exp::write_mesh(terrain, name.str().c_str());
-
-				std::cout << "\n" << "EXPORTED CURRENT MESH at: \"" << at << name.str().c_str() << "\"" << std::endl;
+				export_Texture();
 			}
 		}
 
@@ -252,23 +269,35 @@ int MMV_Viewer::render_UI() {
 		}
 
 
+		if (ImGui::TreeNode("Water")) {
+			ImGui::InputInt("Size X water", &X_Water_);
+			ImGui::InputInt("Size Z water", &Z_Water_);
+
+			if (ImGui::Button("Update water")) {
+				load_water(X_Water_, Z_Water_);
+			}
+
+			ImGui::TreePop();
+		}
+
+
 		if (ImGui::TreeNode("Path")) {
 			static Coord2
-				start(10, 10), end(X_map - 10, Z_map - 10);
+				start(10, 10), end(X_texture - 10, Y_texture - 10);
 
 			static float
-				coeff_height = 20,
+				coeff_height = 0,
 				coeff_slope = 70,
 				coeff_laplacien = 15,
 				coeff_aire_drainage = 16,
 				coeff_wetness = 30;
 
 			if (ImGui::TreeNode("Coord start end")) {
-				ImGui::SliderInt("start X", &start.x, 0, hf.getN().x - 1);
-				ImGui::SliderInt("start Y", &start.y, 0, hf.getN().y - 1);
+				ImGui::SliderInt("start X", &start.x, 0, X_texture - 1);
+				ImGui::SliderInt("start Y", &start.y, 0, Y_texture - 1);
 
-				ImGui::SliderInt("end X", &end.x, 0, hf.getN().x - 1);
-				ImGui::SliderInt("end Y", &end.y, 0, hf.getN().y - 1);
+				ImGui::SliderInt("end X", &end.x, 0, X_texture - 1);
+				ImGui::SliderInt("end Y", &end.y, 0, Y_texture - 1);
 
 				ImGui::TreePop();
 			}
@@ -300,6 +329,7 @@ int MMV_Viewer::render_UI() {
 
 			ImGui::TreePop();
 		}
+
 
 
 		ImGui::End();
