@@ -26,6 +26,14 @@ HeightField::HeightField(Noise_combinaison nc, BBox b, Coord2 n, vec2 d) :Scaler
 	}
 }
 
+Vector HeightField::pos(float x, float y) {
+	return Vector(bbox.pmin) + Vector(
+		(x / float(n.x)) * bbox.pmax.x,
+		interpolate(x, y),
+		(y / float(n.y)) * bbox.pmax.z
+	);
+}
+
 
 
 
@@ -92,7 +100,7 @@ ScalerField HeightField::AireDrainage() {
 	);
 
 
-	std::vector<Connexite> moveList = Connexite::get_Connexite(Connexite::Type::C4, Connexite::Values::direction, d.x, d.y);
+	std::vector<Connexite_Coord> moveList = Connexite_Coord::get_Connexite(Connexite_Coord::Connexite::C4, Connexite_Coord::Values::direction, d.x, d.y);
 	int size = moveList.size();
 	bool direction[8];
 

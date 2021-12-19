@@ -14,13 +14,7 @@ public:
 	HeightField(Image img, BBox b, Coord2 n, vec2 d);
 	HeightField(Noise_combinaison nc, BBox b, Coord2 n, vec2 d);;
 
-	Vector pos(float x, float y) {
-		return Vector(bbox.pmin) + Vector(
-			(x / float(n.x)) * bbox.pmax.x,
-			interpolate(x, y),
-			(y / float(n.y)) * bbox.pmax.z
-		);
-	}
+	Vector pos(float x, float y);
 
 
 	Vector Normal(uint i, uint j)const;
@@ -31,7 +25,7 @@ public:
 	ScalerField AireDrainage();
 	ScalerField Wetness();
 
-
+	// EROSION
 	void StreamPowerErosion(ScalerField s, ScalerField A, float k, float dt);
 	void HillSlopeErosion(ScalerField lap, float k, float dt);
 	void DebrisSlopeErosion(ScalerField s, float k, float dt);

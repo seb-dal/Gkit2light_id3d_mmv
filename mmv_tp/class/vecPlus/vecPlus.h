@@ -6,6 +6,7 @@
 
 #define uint  int
 
+// free type vec2
 template <typename T>
 struct vect2 {
 	T x, y;
@@ -44,6 +45,7 @@ struct vect3 {
 
 
 namespace std {
+	// add clamp to std (not available until c++17)
 	template<typename T>
 	T clamp(T v, T min, T max) {
 		return (min > v) ? min : (v > max) ? max : v;

@@ -81,7 +81,7 @@ class aStar {
 		return s;
 	}
 public:
-	aStar(std::vector<Connexite> connexite, unsigned int size_x, unsigned int size_y, std::function<float(point)> cost_func) :
+	aStar(std::vector<Connexite_Coord> connexite, unsigned int size_x, unsigned int size_y, std::function<float(point)> cost_func) :
 		/*m(size_x, size_y),*/
 		neighbours(connexite),
 		cost_func(cost_func),
@@ -142,7 +142,7 @@ public:
 		float nc, dist;
 		point neighbour;
 
-		for (Connexite& c : neighbours)
+		for (Connexite_Coord& c : neighbours)
 		{
 			neighbour = parent.pos + point(c.x, c.y);
 
@@ -221,7 +221,7 @@ public:
 	//map_obstacle m;
 	point MAX;
 	point end, start;
-	std::vector<Connexite> neighbours;
+	std::vector<Connexite_Coord> neighbours;
 	std::function<float(point)> cost_func;
 
 	//std::list<node> open;

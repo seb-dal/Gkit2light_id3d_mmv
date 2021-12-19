@@ -230,6 +230,9 @@ int MMV_Viewer::render_UI() {
 			poissonDisk_test_texture();
 		}
 
+		if (ImGui::Button("Double Poisson Disk test")) {
+			poissonDisk_double_test_texture();
+		}
 
 		ImGui::Separator();
 		/* Export */ {

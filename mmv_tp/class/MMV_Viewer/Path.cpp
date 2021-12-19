@@ -26,8 +26,8 @@ void MMV_Viewer::draw_path(
 	aa.abs();
 	aa.mult(2);
 
-	auto co = Connexite::get_Connexite(
-		Connexite::Type::C8, Connexite::Values::direction,
+	auto co = Connexite_Coord::get_Connexite(
+		Connexite_Coord::Connexite::C8, Connexite_Coord::Values::direction,
 		hf.getD().x, hf.getD().y
 	);
 

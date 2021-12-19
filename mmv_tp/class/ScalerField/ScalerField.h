@@ -64,16 +64,20 @@ public:
 	float& get(int index);
 	float get(int index)const;;
 
-
+	// x and y betwen [0 n]
 	float interpolate(const float x, const float y) const;
-	vec2 Grad_interpolate(const float x, const float y) const;
-	vec2 Grad_interp(const float x, const float y) const;
 	float interpolate(const vec2 p) const;
 
+	// x and y betwen [0 1]
 	float interp(const float x, const float y) const;
 	float interp(const vec2 p) const;
 
+	vec2 Grad_interpolate(const float x, const float y) const;
+	vec2 Grad_interp(const float x, const float y) const;
 	vec2 Grad(uint i, uint j)const;
+
+	//==============================
+	// Math functions
 
 	void sqrt();
 	void ln();
@@ -85,17 +89,21 @@ public:
 	void div(const ScalerField& sf);
 	void abs();
 
+
 	void normelize(float min_o, float max_0, float min, float max);
 	void normelize(float min, float max);
 	void normelize();
 
-	std::vector<Coord2> voisinage(const std::vector<Coord2>& points, std::vector<Connexite>& c, bool selfInclude);
+
+	std::vector<Coord2> voisinage(const std::vector<Coord2>& points, std::vector<Connexite_Coord>& c, bool selfInclude);
 
 	ScalerField laplacien() const;
 
 	ScalerField blur(int half_size = 0);
 	ScalerField smooth(int half_size = 0);
 	ScalerField smooth(std::vector<Coord2>& applyTo, int half_size = 0);
+
+	// Convolution matrice filter
 	ScalerField applyFilter(std::vector<filter_case> mat);
 	ScalerField applyFilter(std::vector<filter_case> mat, std::vector<Coord2>& applyTo);
 

@@ -30,7 +30,7 @@ std::vector<Coord2> HeightField::CompleteBreach() {
 	};
 	const int NO_BACK_LINK = -1;
 
-	std::vector<Connexite> moveList = Connexite::get_Connexite(Connexite::Type::C4, Connexite::Values::direction, d.x, d.y);
+	std::vector<Connexite_Coord> moveList = Connexite_Coord::get_Connexite(Connexite_Coord::Connexite::C4, Connexite_Coord::Values::direction, d.x, d.y);
 	//==========================================================================
 	std::vector<Coord2> modified;
 
@@ -58,7 +58,7 @@ std::vector<Coord2> HeightField::CompleteBreach() {
 			}
 
 			float lowest_neighbour = float_max;
-			for (Connexite ar : moveList) {
+			for (Connexite_Coord ar : moveList) {
 				const int px = x + ar.x;
 				const int py = y + ar.y;
 

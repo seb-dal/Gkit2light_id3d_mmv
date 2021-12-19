@@ -287,7 +287,7 @@ void ScalerField::normelize() {
 
 
 
-std::vector<Coord2> ScalerField::voisinage(const std::vector<Coord2>& points, std::vector<Connexite>& c, bool selfInclude) {
+std::vector<Coord2> ScalerField::voisinage(const std::vector<Coord2>& points, std::vector<Connexite_Coord>& c, bool selfInclude) {
 	std::vector<Coord2> voisin;
 
 	Unique<Coord2> u;

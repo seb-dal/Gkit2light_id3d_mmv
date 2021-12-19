@@ -6,6 +6,33 @@
 
 
 
+
+//=====================================================================
+
+void MMV_Viewer::update_water_mesh(const float time) {
+	const auto& pos = water.positions();
+
+	float time_speed = time * 0.01;
+
+	float time_x = cos(time_speed * 0.01) * sin(0.368 + time_speed * 0.008) * 100;
+	float time_z = sin(time_speed * 0.01) * cos(1.2358 + time_speed * 0.015) * 100;
+
+
+#pragma omp parallel for
+	for (int i = 0; i < water.vertex_count(); i++) {
+		Point p = pos[i];
+		Point pp = hf.pts_domain(p);
+		if (hf.interp(pp.x, pp.z) < World_box.pmax.y * min_water_palier) {
+			p.y = World_box.pmax.y * min_water + Water_noise.getHeight(p.x + time_x, p.z + time_z) * water_height_variation;
+			water.vertex(i, p);
+		}
+	}
+}
+
+
+
+
+
 void MMV_Viewer::Erode_map(float dt, float spe, float hse, float dse) {
 	ScalerField s = hf.slopeMap();
 	ScalerField A = hf.AireDrainage();
@@ -62,7 +89,7 @@ void MMV_Viewer::smoothed_breaching_map() {
 
 	std::vector<Coord2> changedEX = hf.voisinage(
 		changed,
-		Connexite::get_Connexite(Connexite::Type::M3, Connexite::Values::all, 1, 1),
+		Connexite_Coord::get_Connexite(Connexite_Coord::Connexite::M3, Connexite_Coord::Values::all, 1, 1),
 		true);
 
 	hf.smooth(changedEX);
@@ -205,6 +232,38 @@ void MMV_Viewer::poissonDisk_test_texture() {
 	for (const auto pp : p) {
 		texture(pp.first, pp.second) = Black();
 	}
+
+	update_texture();
+}
+
+
+
+void MMV_Viewer::poissonDisk_double_test_texture() {
+#pragma omp parallel for collapse(2)
+	for (int y = 0; y < Y_texture; y++) {
+		for (int x = 0; x < X_texture; x++) {
+			texture(x, y) = White();
+		}
+	}
+
+	PoissonDisk
+		psd(std::make_pair(X_texture, Y_texture), 16, 16),
+		psd2(std::make_pair(X_texture, Y_texture), 4, 16);
+
+	auto p = psd.poissonDiskSampling();
+	for (const auto& pp : p) {
+		psd2.add_point(pp);
+	}
+
+	auto p2 = psd2.poissonDiskSampling();
+	for (const auto& pp : p2) {
+		texture(pp.first, pp.second) = Green();
+	}
+
+	for (const auto& pp : p) {
+		texture(pp.first, pp.second) = Red();
+	}
+
 
 	update_texture();
 }

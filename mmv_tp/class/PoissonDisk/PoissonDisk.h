@@ -13,26 +13,43 @@ static float rand_float(float High = 1, float Low = 0) {
 	return Low + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (High - Low)));
 }
 
+typedef std::pair<float, float> point2d;
 
 class PoissonDisk {
-	const std::pair<float, float> null = std::make_pair(-1, -1);
+	const point2d null = std::make_pair(-1, -1);
 
-	static float dist(const std::pair<float, float>& a, const std::pair<float, float>& b) {
+	/**
+	 * Compute the distance between 2 2D points.
+	 *
+	 * \param a point A
+	 * \param b point B
+	 * \return euclidian distance
+	 */
+	static float dist(const point2d& a, const point2d& b) {
 		float dx = a.first - b.first;
 		float dy = a.second - b.second;
 		return std::sqrtf(dx * dx + dy * dy);
 	}
 
 
-
-	void insertPoint(const std::pair<float, float>& point) {
+	/**
+	 * Insert a point in the grid.
+	 *
+	 * \param point
+	 */
+	void insertPoint(const point2d& point) {
 		int xindex = floor(point.first / cellsize);
 		int yindex = floor(point.second / cellsize);
 		grid[xindex + yindex * ncells_width] = point;
 	}
 
-
-	bool isValidPoint(const std::pair<float, float>& p) {
+	/**
+	 * Verify if the point can be added.
+	 *
+	 * \param p point tested
+	 * \return true if it is ok to add the point false otherwise
+	 */
+	bool isValidPoint(const point2d& p) {
 		/* Make sure the point is on the screen */
 		if (p.first < 0 || p.first >= width || p.second < 0 || p.second >= height)
 			return false;
@@ -40,6 +57,7 @@ class PoissonDisk {
 		/* Check neighboring eight cells */
 		int xindex = std::floor(p.first / cellsize);
 		int yindex = floor(p.second / cellsize);
+
 		int i0 = std::max(xindex - 1, 0);
 		int i1 = std::min(xindex + 1, ncells_width - 1);
 		int j0 = std::max(yindex - 1, 0);
@@ -47,7 +65,7 @@ class PoissonDisk {
 
 		for (int i = i0; i <= i1; i++)
 			for (int j = j0; j <= j1; j++) {
-				const std::pair<float, float> pp = grid[i + j * ncells_width];
+				const point2d pp = grid[i + j * ncells_width];
 				if (pp.first != null.first && pp.second != null.second)
 					if (dist(pp, p) < radius)
 						return false;
@@ -58,6 +76,7 @@ class PoissonDisk {
 	}
 
 public:
+
 	/**
 	 * Create a 2D PoissonDisk distribution.
 	 *
@@ -84,8 +103,12 @@ public:
 	}
 
 
-
-	void add_point(const std::pair<float, float>& p) {
+	/**
+	 * Add a points of the PoissonDisk points.
+	 *
+	 * \param p point
+	 */
+	void add_point(const point2d& p) {
 		insertPoint(p);
 		points.push_back(p);
 		active.push_back(p);
@@ -96,25 +119,26 @@ public:
 	 *
 	 * \return list of points
 	 */
-	std::vector<std::pair<float, float>> poissonDiskSampling() {
+	std::vector<point2d> poissonDiskSampling() {
 		if (active.empty()) {
-			std::pair<float, float> p0 = std::make_pair(rand_float(width), rand_float(height));
+			point2d p0 = std::make_pair(rand_float(width), rand_float(height));
 			add_point(p0);
 		}
 
 
 		while (!active.empty()) {
 			int random_index = rand() % int(active.size());
-			std::pair<float, float> p = active.at(random_index);
+			point2d p = active.at(random_index);
 
 			bool found = false;
 			for (int tries = 0; tries < k; tries++) {
 				float theta = rand_float(360);
 				float new_radius = rand_float(2 * radius, radius);
+
 				float pnewx = p.first + new_radius * std::cos(rad(theta));
 				float pnewy = p.second + new_radius * std::sin(rad(theta));
 
-				std::pair<float, float> pnew = std::make_pair(pnewx, pnewy);
+				point2d pnew = std::make_pair(pnewx, pnewy);
 				if (!isValidPoint(pnew)) {
 					continue;
 				}
@@ -134,11 +158,11 @@ public:
 
 
 public:
-	std::vector<std::pair<float, float>> points, active;
+	std::vector<point2d> points, active;
 
 	int N = 2;
 	int width, height, ncells_width, ncells_height, k;
-	std::vector<std::pair<float, float>> grid;
+	std::vector<point2d> grid;
 
 	float cellsize, radius;
 };

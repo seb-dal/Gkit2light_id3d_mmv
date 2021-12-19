@@ -62,35 +62,105 @@ public:
 
 
 	//=====================================================================
+	/**
+	 * Update the water mesh according to time.
+	 */
+	void update_water_mesh(const float time);
 
+	/**
+	 * Erode the height field.
+	 *
+	 * \param dt delta time
+	 * \param spe Stream Power Erosion coeff
+	 * \param hse Hill Slope Erosion coeff
+	 * \param dse Debris Slope Erosion coeff
+	 */
 	void Erode_map(float dt, float spe, float hse, float dse);
 
+	/**
+	 * Smooth the height field values.
+	 *
+	 */
 	void smooth_map();
 
+	/**
+	 * blur the height field values.
+	 *
+	 */
 	void blur_map();
 
+	/**
+	 * Breaching.
+	 *
+	 */
 	void breach_map();
 
+	/**
+	 * Computer breaching then smooth the surounding.
+	 *
+	 */
 	void smoothed_breaching_map();
 
+	/**
+	 * draw laplacien as texture.
+	 *
+	 */
 	void laplacien_texture();
 
+	/**
+	 * draw l'aire de drainage as texture.
+	 *
+	 */
 	void air_drainage_texture();
 
+	/**
+	 * draw Slope as texture.
+	 *
+	 */
 	void slope_texture();
 
+	/**
+	 * draw wteness as texture.
+	 *
+	 */
 	void wetness_texture();
 
+	/**
+	 * draw terrain texture.
+	 *
+	 */
 	void terrain_texture();
 
+	/**
+	 * draw shading texture.
+	 *
+	 */
 	void shading_texture();
 
+	/**
+	 * draw PoissonDisk result as texture.
+	 *
+	 */
 	void poissonDisk_test_texture();
 
+	void poissonDisk_double_test_texture();
+
+	/**
+	 * init the variables and folder for the export of elements
+	 *
+	 */
 	void Export_init();
 
+	/**
+	 * export the current texture
+	 *
+	 */
 	void export_Texture();
 
+	/**
+	 * export the current height field mesh
+	 *
+	 */
 	void export_terrain();
 
 protected:
@@ -106,8 +176,8 @@ protected:
 		Z_Water = 200;
 
 	int
-		X_texture = 2000,
-		Y_texture = 2000;
+		X_texture = 500,
+		Y_texture = 500;
 
 	// Veget variables
 	int Factor_scale_Poisson = 2;

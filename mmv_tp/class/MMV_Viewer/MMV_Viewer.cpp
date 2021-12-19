@@ -50,15 +50,15 @@ void MMV_Viewer::load_height_map(const char* path, const Point& domain) {
 	World_box = BBox(pm, pM);
 
 	hf = HeightField(img, World_box, Coord2(domain.x, domain.z), vec2(1, 1));
-	//hf = HeightField(nc, BBox(pm, pM), Coord2(width_map, height_map), vec2(1, 1));
-
 
 	terrain = hf.to_Mesh(p);
+
 	Builder::Compute_normal(terrain);
 
 	load_water(X_Water, Z_Water);
 
 	m_camera.lookat(pm, pM);
+	m_camera.saveCamera();
 }
 
 
@@ -126,16 +126,12 @@ int MMV_Viewer::init()
 	Export_init();
 
 	load_texture(X_texture, Y_texture);
-	load_height_map("./id3d_mmv/mmv_tp/data/a.jpg", Point(X_map, Y_height_map, Z_map));
 
-	//veget = read_mesh("./id3d_mmv/data/Ultimate Nature Pack/OBJ/CommonTree/CommonTree_1.obj");
-
-	//Image img(read_image("./id3d_mmv/mmv_tp/data/island.jpg"));  //a.jpg
 
 	m_camera.projection(window_width(), window_height(), 75);
 	m_camera.move_speed = 5;
 	m_camera.move_speedup = 10;
-	m_camera.saveCamera();
+	load_height_map("./id3d_mmv/mmv_tp/data/a.jpg", Point(X_map, Y_height_map, Z_map));
 
 
 	// etat openGL par defaut
@@ -198,25 +194,7 @@ int MMV_Viewer::update(const float time, const float delta) {
 	}
 
 	if (render_water) {
-		const auto& pos = water.positions();
-
-
-
-		float time_speed = time * 0.01;
-
-		float time_x = cos(time_speed * 0.01) * sin(0.368 + time_speed * 0.008) * 100;
-		float time_z = sin(time_speed * 0.01) * cos(1.2358 + time_speed * 0.015) * 100;
-
-
-#pragma omp parallel for
-		for (int i = 0; i < water.vertex_count(); i++) {
-			Point p = pos[i];
-			Point pp = hf.pts_domain(p);
-			if (hf.interp(pp.x, pp.z) < World_box.pmax.y * min_water_palier) {
-				p.y = World_box.pmax.y * min_water + Water_noise.getHeight(p.x + time_x, p.z + time_z) * water_height_variation;
-				water.vertex(i, p);
-			}
-		}
+		update_water_mesh(time);
 	}
 
 	return 0;
@@ -237,7 +215,6 @@ int MMV_Viewer::render()
 	if (render_veget) {
 		gkit_exp::draw_groups(veget, Identity(), m_camera.view(), m_camera.projection(), groups_veget);
 	}
-	//draw(veget, Scale(20), m_camera);
 
 	m_camera.draw_axes();
 	return 1;
