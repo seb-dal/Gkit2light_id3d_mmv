@@ -134,6 +134,16 @@ std::string Utility::fast_int2str(int nb) {
 	return num;
 }
 
+bool Utility::file_exist(const char* file_path) {
+	if (FILE* f = fopen(file_path, "r")) {
+		fclose(f);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 
 
 

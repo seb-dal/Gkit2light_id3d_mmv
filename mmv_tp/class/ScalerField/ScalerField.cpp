@@ -26,6 +26,14 @@ int ScalerField::getIndex(std::pair<int, int> p) const { return p.first + n.x * 
 
 Coord2 ScalerField::getCoord(int index) { return Coord2(index % n.x, index / n.x); }
 
+Point ScalerField::pts_domain(const Point& p) {
+	Point pp = p;
+	pp.x = (pp.x - bbox.pmin.x) / bbox.pmax.x;
+	pp.y = (pp.y - bbox.pmin.y) / bbox.pmax.y;
+	pp.z = (pp.z - bbox.pmin.z) / bbox.pmax.z;
+	return pp;
+}
+
 
 
 bool ScalerField::is_valide_Index(int index) { return index >= 0 && index < vec.size(); }
@@ -59,11 +67,14 @@ float ScalerField::get(int index) const { return vec[index]; }
 
 float ScalerField::interpolate(const float x, const float y) const
 {
+	float xx = std::clamp(x, 0.f, float(n.x - 2));
+	float yy = std::clamp(y, 0.f, float(n.y - 2));
+
 	// interpolation bilineaire 
-	float u = x - std::floor(x);
-	float v = y - std::floor(y);
-	int ix = x;
-	int iy = y;
+	float u = xx - std::floor(xx);
+	float v = yy - std::floor(yy);
+	int ix = xx;
+	int iy = yy;
 	return get(ix, iy) * ((1 - u) * (1 - v))
 		+ get(ix + 1, iy) * (u * (1 - v))
 		+ get(ix, iy + 1) * ((1 - u) * v)
@@ -71,10 +82,55 @@ float ScalerField::interpolate(const float x, const float y) const
 }
 
 
+vec2 ScalerField::Grad_interpolate(const float x, const float y) const
+{
+	float xx = std::clamp(x, 0.f, float(n.x - 2));
+	float yy = std::clamp(y, 0.f, float(n.y - 2));
+
+	// interpolation bilineaire 
+	float u = xx - std::floor(xx);
+	float v = yy - std::floor(yy);
+	int ix = xx;
+	int iy = yy;
+
+	vec2 a = Grad(ix, iy);
+	a(0) *= ((1 - u) * (1 - v));
+	a(1) *= ((1 - u) * (1 - v));
+
+	vec2 b = Grad(ix + 1, iy);
+	b(0) *= (u * (1 - v));
+	b(1) *= (u * (1 - v));
+
+	vec2 c = Grad(ix, iy + 1);
+	c(0) *= ((1 - u) * v);
+	c(1) *= ((1 - u) * v);
+
+	vec2 d = Grad(ix + 1, iy + 1);
+	d(0) *= (u * v);
+	d(1) *= (u * v);
+
+
+	return vec2(a.x + b.x + c.x + d.x, a.y + b.y + c.y + d.y);
+}
+
+vec2 ScalerField::Grad_interp(const float x, const float y) const
+{
+	return Grad_interpolate(x * n.x, y * n.y);
+}
 
 
 float ScalerField::interpolate(const vec2 p) const {
 	return interpolate(p.x, p.y);
+}
+
+float ScalerField::interp(const float x, const float y) const
+{
+	return interpolate(x * n.x, y * n.y);
+}
+
+float ScalerField::interp(const vec2 p) const
+{
+	return interp(p.x, p.y);
 }
 
 
@@ -374,11 +430,11 @@ ScalerField ScalerField::applyFilter(std::vector<filter_case> mat, std::vector<C
 
 
 
-void ScalerField::to_image(Image& img) {
+void ScalerField::to_image(Image& img, int tx, int ty) {
 #pragma omp parallel for collapse(2)
-	for (int y = 0; y < n.y; y++) {
-		for (int x = 0; x < n.x; x++) {
-			img(x, y) = ColorMaps::Rainbow_Map(get(x, y));
+	for (int y = 0; y < ty; y++) {
+		for (int x = 0; x < tx; x++) {
+			img(x, y) = ColorMaps::Rainbow_Map(interp(x / float(tx), y / float(ty)));
 		}
 	}
 }

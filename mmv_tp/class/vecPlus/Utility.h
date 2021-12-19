@@ -13,6 +13,31 @@ public:
 	static std::string fast_int2str(int nb);
 
 
+	static bool compare(const std::string& a, int start, int end, const std::string& b) {
+		return std::equal(
+			a.begin() + start, a.begin() + end,
+			b.begin(), b.end(),
+			[](char a, char b) {
+				return std::tolower(a) == std::tolower(b);
+			});
+	}
+
+	static bool str_endwith(const std::string& fullString, const std::string ending[]) {
+		int i = 0;
+		while (!ending[i].empty()) {
+			if (fullString.length() >= ending[i].length()) {
+				if (compare(fullString, fullString.length() - ending[i].length(), ending[i].length(), ending[i]))
+					return true;
+			}
+
+			i++;
+		}
+
+		return false;
+	}
+
+	static bool file_exist(const char* file_path);
+
 
 	/*
 	https://stackoverflow.com/questions/10402499/mkdir-c-function

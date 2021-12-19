@@ -4,14 +4,35 @@
 #include "../vecPlus/gkit_expension.h"
 #include "../aStar/A_Star.h"
 
-int MMV_Viewer::render_UI() {
-	static bool
-		win_erosion = false,
-		win_texture = false,
-		win_manipulation = false,
-		mb_cullface = false,
-		main_open = true;
 
+static bool
+win_erosion = false,
+win_texture = false,
+win_manipulation = false,
+mb_cullface = false,
+main_open = false,
+open_file_windows = false;
+
+
+#define PATH_SIZE 600
+static char
+path_buf[PATH_SIZE];
+
+
+static int
+X_map_ = 400,
+Y_map_ = 400,
+Z_map_ = 400;
+
+
+static std::string
+waring_load = "";
+
+static std::string extension[] = {
+	".png", ".jpg"
+};
+
+int MMV_Viewer::render_UI() {
 	if (gkit_exp::key_state_then_clear(SDLK_F1))
 		main_open = !main_open;
 
@@ -24,15 +45,49 @@ int MMV_Viewer::render_UI() {
 	if (gkit_exp::key_state_then_clear(SDLK_F4))
 		win_manipulation = !win_manipulation;
 
+
 	/* Main Winows */ {
-		ImGui::Begin("Main Winows", &main_open);
+		ImGui::SetNextWindowCollapsed(main_open);
+
+		ImGui::Begin("Main Winows (F1)");
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-		/*if (ImGui::BeginMenuBar()) {
+		if (ImGui::BeginMenuBar()) {
+			if (ImGui::MenuItem("Open Height field", "Ctrl+O")) {
+				ImGui::Begin("Open Height field", &open_file_windows);
+
+				ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), waring_load.c_str());
+
+				ImGui::InputText("Path", path_buf, PATH_SIZE);
 
 
+				ImGui::InputInt("Domain X map", &X_map_, 50, 4000);
+				ImGui::InputInt("Domain Y map", &Y_map_, 50, 4000);
+				ImGui::InputInt("Domain Z map", &Z_map_, 50, 4000);
+
+				if (ImGui::Button("Load")) {
+					if (Utility::str_endwith(std::string(path_buf), extension)) {
+						if (Utility::file_exist(path_buf)) {
+
+
+
+
+						}
+						else {
+							waring_load = "Le chemin vers le fichier n'est pas valide";
+						}
+					}
+					else {
+						waring_load = "L'extension du fichier n'est pas valide, seul .png et .jpg sont utilisable";
+					}
+				}
+
+				ImGui::End();
+			}
+
+			ImGui::EndMenuBar();
 		}
-		ImGui::EndMenuBar();*/
+
 		if (ImGui::Checkbox("Cull face", &mb_cullface)) {
 			if (mb_cullface)
 				glEnable(GL_CULL_FACE);
@@ -40,13 +95,17 @@ int MMV_Viewer::render_UI() {
 				glDisable(GL_CULL_FACE);
 		}
 
+		if (ImGui::Button("Switch camera mode (c)")) {
+			m_camera.switch_view_mode();
+		}
+
 		ImGui::Checkbox("render water", &render_water);
 
 		ImGui::Separator();
 
-		ImGui::Checkbox("Windows Erosion (f2)", &win_erosion);
-		ImGui::Checkbox("Windows Textures (f3)", &win_texture);
-		ImGui::Checkbox("Windows Manipulation (f4)", &win_manipulation);
+		ImGui::Checkbox("Windows Erosion (F2)", &win_erosion);
+		ImGui::Checkbox("Windows Textures (F3)", &win_texture);
+		ImGui::Checkbox("Windows Manipulation (F4)", &win_manipulation);
 		ImGui::End();
 	}
 
@@ -59,44 +118,26 @@ int MMV_Viewer::render_UI() {
 			hse = 0.3,
 			dse = 0.47;
 
-		ImGui::Begin("Mesh manipulation", &win_erosion);
+		ImGui::Begin("Mesh manipulation (F2)", &win_erosion);
 
 		ImGui::SliderFloat("delta time", &dt, 0.001f, 10.0f);
 		ImGui::SliderFloat("StreamPowerErosion", &spe, 0.0f, 1.0f);
 		ImGui::SliderFloat("HillSlopeErosion", &hse, 0.0f, 1.0f);
 		ImGui::SliderFloat("DebrisSlopeErosion", &dse, 0.0f, 1.0f);
 		if (ImGui::Button("Erosion (e)") || gkit_exp::key_state_then_clear('e')) {
-			ScalerField s = hf.slopeMap();
-			ScalerField A = hf.AireDrainage();
-			ScalerField l = hf.laplacien();
-
-			s.normelize();
-			A.normelize();
-			A.sqrt();
-
-			l.normelize(-1, 1);
-
-			//printf("start erosion SP \n");
-			hf.StreamPowerErosion(s, A, 0.65, dt);
-			hf.HillSlopeErosion(l, .3f, dt);
-			hf.DebrisSlopeErosion(s, 0.47f, dt);
-			//printf("end erosion SP \n");
-
-			update_Mesh();
+			Erode_map(dt, spe, hse, dse);
 		}
 
 		ImGui::Separator();
 
 		if (ImGui::Button("Smooth (0)") || gkit_exp::key_state_then_clear('0')) {
-			hf.smooth();
-			update_Mesh();
+			smooth_map();
 		}
 		ImGui::SameLine();
 		ImGui::Text("  ");
 		ImGui::SameLine();
 		if (ImGui::Button("Blur (9)") || gkit_exp::key_state_then_clear('9')) {
-			hf.blur(2);
-			update_Mesh();
+			blur_map();
 		}
 
 		ImGui::Separator();
@@ -104,131 +145,51 @@ int MMV_Viewer::render_UI() {
 		bool breaching = gkit_exp::key_state_then_clear('b');
 
 		if (ImGui::Button("Complete Breach (b)") || (breaching && !gkit_exp::ctrl())) {
-			hf.CompleteBreach();
-			update_Mesh();
+			breach_map();
 		}
 		ImGui::SameLine();
 		ImGui::Text("  ");
 		ImGui::SameLine();
 		if (ImGui::Button("Smoothed Complete Breach (ctrl-b)") || (breaching && gkit_exp::ctrl())) {
-			std::vector<Coord2> changed = hf.CompleteBreach();
-
-			std::vector<Coord2> changedEX = hf.voisinage(
-				changed,
-				Connexite::get_Connexite(Connexite::Type::M3, Connexite::Values::all, 1, 1),
-				true);
-
-			hf.smooth(changedEX);
-
-			update_Mesh();
+			smoothed_breaching_map();
 		}
 
 		ImGui::End();
 	}/*Erosion Windows*/
 
+
+
+
+
 	/* Texture Terrain */if (win_texture) {
-		ImGui::Begin("Texture terrain", &win_texture);
+		ImGui::Begin("Texture terrain (F3)", &win_texture);
 
 		if (ImGui::Button("laplacien (l)") || gkit_exp::key_state_then_clear('l')) {
-			ScalerField l = hf.laplacien();
-			l.normelize();
-			l.to_image(texture);
-
-			update_texture();
+			laplacien_texture();
 		}
 
 		if (ImGui::Button("Aire de drainage (a)") || gkit_exp::key_state_then_clear('a')) {
-			ScalerField a = hf.AireDrainage();
-			a.sqrt();
-			a.normelize();
-			a.sqrt();
-			//a.sqrt();
-			//a.sqrt();
-			//a.sqrt();
-
-			a.to_image(texture);
-
-			update_texture();
+			air_drainage_texture();
 		}
 
 		if (ImGui::Button("Slope (s)") || gkit_exp::key_state_then_clear('s')) {
-			ScalerField s = hf.slopeMap();
-			s.normelize();
-			s.to_image(texture);
-
-			update_texture();
+			slope_texture();
 		}
 
 		if (ImGui::Button("Wetness (w)") || gkit_exp::key_state_then_clear('w')) {
-			ScalerField w = hf.Wetness();
-			w.normelize();
-			w.to_image(texture);
-
-			update_texture();
+			wetness_texture();
 		}
 
 		if (ImGui::Button("Terrain (t)") || gkit_exp::key_state_then_clear('t')) {
-			ScalerField h = ScalerField(hf);
-			ScalerField s = hf.slopeMap();
-			ScalerField l = hf.laplacien();
-			ScalerField a = hf.AireDrainage();
-			ScalerField w = hf.Wetness();
-
-			h.normelize(map_box.pmin.y, map_box.pmax.y, 0, 1);
-			//s.normelize(0, 90, 0, 1);
-			l.normelize();
-			a.normelize();
-			w.normelize();
-
-#pragma omp parallel for collapse(2)
-			for (int y = 0; y < hf.getN().y; y++) {
-				for (int x = 0; x < hf.getN().x; x++) {
-					texture(x, y) = ColorMaps::Terrain_Map(h.get(x, y), s.get(x, y), l.get(x, y), a.get(x, y), w.get(x, y));
-				}
-			}
-
-			update_texture();
+			terrain_texture();
 		}
 
 		if (ImGui::Button("Shading (v)") || gkit_exp::key_state_then_clear('v')) {
-			ScalerField l = hf.laplacien();
-
-			l.normelize();
-
-			vec2 light(-1, 1);
-
-#pragma omp parallel for collapse(2)
-			for (int y = 0; y < hf.getN().y; y++) {
-				for (int x = 0; x < hf.getN().x; x++) {
-					texture(x, y) = Color(0.5) + Color(0.35) * ((dot(hf.Grad(x, y), light) + 1) / 2.f) + Color(0.15) * (-l.get(x, y));
-
-					texture(x, y).r = std::clamp(texture(x, y).r, 0.f, 1.f);
-					texture(x, y).g = std::clamp(texture(x, y).g, 0.f, 1.f);
-					texture(x, y).b = std::clamp(texture(x, y).b, 0.f, 1.f);
-
-					texture(x, y).a = 1.f;
-				}
-			}
-
-			update_texture();
+			shading_texture();
 		}
 
 		if (ImGui::Button("Poisson Disk test")) {
-#pragma omp parallel for collapse(2)
-			for (int y = 0; y < hf.getN().y; y++) {
-				for (int x = 0; x < hf.getN().x; x++) {
-					texture(x, y) = White();
-				}
-			}
-
-			PoissonDisk psd(std::make_pair(width_map, height_map), 8, 16);
-			auto p = psd.poissonDiskSampling();
-
-			for (const auto pp : p) {
-				texture(pp.first, pp.second) = Black();
-			}
-
-			update_texture();
+			poissonDisk_test_texture();
 		}
 
 
@@ -255,7 +216,7 @@ int MMV_Viewer::render_UI() {
 			ImGui::SameLine();
 			ImGui::Text("  ");
 			ImGui::SameLine();
-			if (ImGui::Button("Export Mesh (gkit_exp::ctrl-x)") || (export_item && gkit_exp::ctrl())) {
+			if (ImGui::Button("Export Mesh (ctrl-x)") || (export_item && gkit_exp::ctrl())) {
 				std::stringstream name;
 				name << "." << base_path << "Export_Mesh_" << Utility::getTimeStr() << ".obj";
 				gkit_exp::write_mesh(terrain, name.str().c_str());
@@ -270,7 +231,7 @@ int MMV_Viewer::render_UI() {
 
 
 	/* Manipulation */ if (win_manipulation) {
-		ImGui::Begin("Manipulation", &win_manipulation);
+		ImGui::Begin("Manipulation (F4)", &win_manipulation);
 
 		if (ImGui::TreeNode("Veget")) {
 			if (ImGui::Button("Veget (v)") || gkit_exp::key_state_then_clear('v')) {
@@ -293,7 +254,7 @@ int MMV_Viewer::render_UI() {
 
 		if (ImGui::TreeNode("Path")) {
 			static Coord2
-				start(10, 10), end(width_map - 10, height_map - 10);
+				start(10, 10), end(X_map - 10, Z_map - 10);
 
 			static float
 				coeff_height = 20,

@@ -3,6 +3,61 @@
 #include "../vecPlus/gkit_expension.h"
 
 
+void MMV_Viewer::load_water(int width, int height) {
+	if (water.vertex_count() > 0) {
+		water.clear();
+	}
+
+	X_Water = width;
+	Z_Water = height;
+
+	water = Builder::flat_Mesh(X_Water, Z_Water, World_box, pw);
+}
+
+
+
+void MMV_Viewer::load_texture(int width, int height) {
+	if (texture.size() > 0) {
+		glDeleteTextures(1, &gl_texture);
+	}
+
+	X_texture = width;
+	Y_texture = height;
+
+	texture = Image(X_texture, Y_texture, White());
+	gl_texture = make_texture(0, texture);
+}
+
+
+
+void MMV_Viewer::load_height_map(const char* path, const Point& domain) {
+	if (terrain.vertex_count() > 0) {
+		terrain.clear();
+	}
+
+	Image img(read_image(path));
+
+	Point pm, pM;
+	pM.x = domain.x * 2.5;
+	pM.y = domain.y;
+	pM.z = domain.z * 2.5;
+	World_box = BBox(pm, pM);
+
+	hf = HeightField(img, World_box, Coord2(domain.x, domain.z), vec2(1, 1));
+	//hf = HeightField(nc, BBox(pm, pM), Coord2(width_map, height_map), vec2(1, 1));
+
+
+	terrain = hf.to_Mesh(p);
+	Builder::Compute_normal(terrain);
+
+	load_water(X_Water, Z_Water);
+
+	m_camera.lookat(pm, pM);
+}
+
+
+
+
 void MMV_Viewer::init_noise() {
 	FastNoiseLite a;
 	a.SetNoiseType(FastNoiseLite::NoiseType::NoiseType_Cellular);
@@ -64,36 +119,18 @@ int MMV_Viewer::init()
 	ms.load();
 
 
+	load_texture(X_texture, Y_texture);
+	load_height_map("./id3d_mmv/mmv_tp/data/a.jpg", Point(X_map, 64, Z_map));
+
 	//veget = read_mesh("./id3d_mmv/data/Ultimate Nature Pack/OBJ/CommonTree/CommonTree_1.obj");
 
 	//Image img(read_image("./id3d_mmv/mmv_tp/data/island.jpg"));  //a.jpg
-	Image img(read_image("./id3d_mmv/mmv_tp/data/a.jpg"));
 
-
-	texture = Image(width_map, height_map, White());
-	gl_texture = make_texture(0, texture);
-
-	Point pm, pM;
-	pM.x = width_map * 2.5;
-	pM.y = 64;
-	pM.z = height_map * 2.5;
-
-	map_box = BBox(pm, pM);
-	hf = HeightField(img, map_box, Coord2(width_map, height_map), vec2(1, 1));
-	//hf = HeightField(nc, BBox(pm, pM), Coord2(width_map, height_map), vec2(1, 1));
-
-
-	terrain = hf.to_Mesh(p);
-	Builder::Compute_normal(terrain);
-
-	water = Builder::flat_Mesh(width_map, height_map, map_box, pw);
-	//hf.updateMesh_normal(m);
-	//m_camera.setFOV(75);
 	m_camera.projection(window_width(), window_height(), 75);
-	m_camera.lookat(pm, pM);
 	m_camera.move_speed = 5;
 	m_camera.move_speedup = 10;
 	m_camera.saveCamera();
+
 
 	// etat openGL par defaut
 	glClearColor(0.2f, 0.2f, 0.2f, 1.f);        // couleur par defaut de la fenetre
@@ -146,7 +183,8 @@ void MMV_Viewer::update_texture() {
 }
 
 
-
+//static float time_x = 0;
+//static float time_z = 0;
 
 int MMV_Viewer::update(const float time, const float delta) {
 	if (!ImGui::GetIO().WantCaptureMouse) {
@@ -154,13 +192,20 @@ int MMV_Viewer::update(const float time, const float delta) {
 	}
 
 	if (render_water) {
-		const auto& pos = water.positions(), & pos2 = terrain.positions();
+		const auto
+			& pos = water.positions();
+
 		float time_speed = time * 0.01;
+
+		float time_x = cos(time_speed * 0.01) * sin(0.368 + time_speed * 0.008) * 100;
+		float time_z = sin(time_speed * 0.01) * cos(1.2358 + time_speed * 0.015) * 100;
+
 #pragma omp parallel for
 		for (int i = 0; i < water.vertex_count(); i++) {
-			if (pos2[i].y < map_box.pmax.y * min_water_palier) {
-				Point p = pos[i];
-				p.y = map_box.pmax.y * min_water + Water_noise.getHeight(p.x + time_speed, p.z + time_speed) * height_water + water_level;
+			Point p = pos[i];
+			Point pp = hf.pts_domain(p);
+			if (hf.interp(pp.x, pp.z) < World_box.pmax.y * min_water_palier) {
+				p.y = World_box.pmax.y * min_water + Water_noise.getHeight(p.x + time_x, p.z + time_z) * water_height_variation;
 				water.vertex(i, p);
 			}
 		}
@@ -189,3 +234,5 @@ int MMV_Viewer::render()
 	m_camera.draw_axes();
 	return 1;
 }
+
+

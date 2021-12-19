@@ -48,7 +48,7 @@ float HeightField::slope(uint i, uint j) {
 ScalerField HeightField::slopeMap() {
 	ScalerField slope(bbox, n, d);
 
-#pragma omp parallel for collapse(2)
+#pragma omp parallel for
 	for (int y = 0; y < n.y; y++) {
 		for (int x = 0; x < n.x; x++) {
 			slope.get(x, y) = this->slope(x, y);
@@ -136,10 +136,11 @@ ScalerField HeightField::AireDrainage() {
 ScalerField HeightField::Wetness() {
 	ScalerField A = AireDrainage();
 	ScalerField s = slopeMap();
+
 	s.add(0.1);
 	A.div(s);
-
 	A.ln();
+
 	return A;
 }
 

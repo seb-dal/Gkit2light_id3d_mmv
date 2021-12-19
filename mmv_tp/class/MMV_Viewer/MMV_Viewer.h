@@ -42,6 +42,10 @@ class MMV_Viewer : public App_imgui
 public:
 	MMV_Viewer() : App_imgui(1020, 540) {}
 
+	void load_water(int width, int height);
+
+	void load_texture(int width, int height);
+	void load_height_map(const char* path, const Point& domain);
 	void init_noise();
 	int init();
 
@@ -55,13 +59,63 @@ public:
 
 	int render();
 
-protected:
-	BBox map_box;
-	int height_map = 400,
-		width_map = 400;
 
-	const float big_scale = 4, small_scale = 0.8, big_radius = 8, small_radius = 1;
-	const float min_water = 0.15, min_water_palier = 0.19, height_water = 2.5, water_level = 1.2;
+	//=====================================================================
+
+	void Erode_map(float dt, float spe, float hse, float dse);
+
+	void smooth_map();
+
+	void blur_map();
+
+	void breach_map();
+
+	void smoothed_breaching_map();
+
+	void laplacien_texture();
+
+	void air_drainage_texture();
+
+	void slope_texture();
+
+	void wetness_texture();
+
+	void terrain_texture();
+
+	void shading_texture();
+
+	void poissonDisk_test_texture();
+
+
+protected:
+	BBox World_box;
+
+	int
+		X_map = 200,
+		Z_map = 200;
+
+	int
+		X_Water = 200,
+		Z_Water = 200;
+
+	int
+		X_texture = 2000,
+		Y_texture = 2000;
+
+	// Veget variables
+	int Factor_scale_Poisson = 2;
+	const float
+		big_scale = 4,
+		small_scale = 0.8,
+		big_radius = 8,
+		small_radius = 1;
+
+
+	// water animation variables
+	const float
+		min_water = 0.13,
+		min_water_palier = 0.2,
+		water_height_variation = 1.5;
 
 	Mesh_sample ms;
 

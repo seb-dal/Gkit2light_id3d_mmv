@@ -39,9 +39,9 @@ Mesh Builder::flat_Mesh(int size_x, int size_y, BBox b, std::function<const floa
 			}
 
 			mesh.vertex(b.pmin + Point(
-				xxx * b.pmax.x,
+				xx * b.pmax.x,
 				funcZ(x, y) * b.pmax.y,
-				yyy * b.pmax.z
+				yy * b.pmax.z
 			));
 		}
 	}

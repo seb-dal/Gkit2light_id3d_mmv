@@ -36,6 +36,8 @@ public:
 	// get the coord of the given index
 	Coord2 getCoord(int index);
 
+	//Compute a point with coord between [0; 1] if in the domain
+	Point pts_domain(const Point& p);
 
 	// tell if the index is inside the list of 2D case
 	bool is_valide_Index(int index);
@@ -64,8 +66,12 @@ public:
 
 
 	float interpolate(const float x, const float y) const;
+	vec2 Grad_interpolate(const float x, const float y) const;
+	vec2 Grad_interp(const float x, const float y) const;
 	float interpolate(const vec2 p) const;
 
+	float interp(const float x, const float y) const;
+	float interp(const vec2 p) const;
 
 	vec2 Grad(uint i, uint j)const;
 
@@ -95,7 +101,7 @@ public:
 
 
 	Mesh to_Mesh(Builder::params p);
-	void to_image(Image& img);
+	void to_image(Image& img, int tx, int ty);
 	void updateMesh(Mesh& m);
 
 public: // GETTER

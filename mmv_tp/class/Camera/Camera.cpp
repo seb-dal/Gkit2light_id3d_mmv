@@ -43,6 +43,26 @@ Camera::Camera() :Orbiter() {
 void Camera::setFOV(float fov) { m_fov = fov; }
 
 
+void Camera::switch_view_mode() {
+	change_view_mode(!mode_Orbiter);
+}
+
+
+void Camera::change_view_mode(bool mode_orbiteur) {
+	mode_Orbiter = mode_orbiteur;
+
+	if (mode_orbiteur) {
+		m_size = m_size_orbiteur;
+		SDL_SetRelativeMouseMode(SDL_FALSE);
+	}
+	else {
+		m_size_orbiteur = m_size;
+		m_size = 0;
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+	}
+}
+
+
 
 
 
@@ -62,17 +82,8 @@ void Camera::update(const float delta) {
 	//changement de mode de camera
 	if (key_state(key_changeMode)) {
 		clear_key_state(key_changeMode);
-		mode_Orbiter = !mode_Orbiter;
 
-		if (mode_Orbiter) {
-			m_size = m_size_orbiteur;
-			SDL_SetRelativeMouseMode(SDL_FALSE);
-		}
-		else {
-			m_size_orbiteur = m_size;
-			m_size = 0;
-			SDL_SetRelativeMouseMode(SDL_TRUE);
-		}
+		switch_view_mode();
 	}
 
 	int mx, my;

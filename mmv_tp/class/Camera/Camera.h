@@ -16,6 +16,10 @@ public:
 
 	void setFOV(float fov);
 
+	void switch_view_mode();
+
+	virtual void change_view_mode(bool mode_orbiteur);
+
 	// update camera
 	virtual void update(const float delta);
 
