@@ -1,7 +1,7 @@
 # Projet Master2 informatique ID3D
 # MMV: Modélisation de monde Virtuel
 
-![Image APP](.\WIKI\images\1.JPG)
+<img src=".\WIKI\images\1.JPG" alt="Image APP" style="zoom:100%;" />
 
 ## Installation et compilation
 
@@ -57,7 +57,7 @@ Breaching terrain
 
 |                       Before Breaching                       |                Convergence smoothed breaching                |
 | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| <img src=".\WIKI\images\breaching\0.JPG" alt="0" style="zoom: 50%;" /> | <img src=".\WIKI\images\breaching\smoothedBreaching_convergence.JPG" alt="smoothedBreaching_convergence" style="zoom: 50%;" /> |
+| <img src=".\WIKI\images\breaching\0.JPG" alt="0.JPG" style="zoom: 50%;" /> | <img src=".\WIKI\images\breaching\smoothedBreaching_convergence.JPG" alt="smoothedBreaching_convergence" style="zoom: 50%;" /> |
 
 
 
@@ -77,6 +77,7 @@ Erosion Paramétrer
 
 [Rapport](./WIKI/Rapport/MMV_TP2_Rapport.pdf)
 
+<img src=".\WIKI\images\5.JPG" alt="5.JPG" style="zoom:50%;" />
 
 
 ## Utiliser
